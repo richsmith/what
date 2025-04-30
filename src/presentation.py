@@ -1,0 +1,53 @@
+from dataclasses import dataclass, field
+from typing import Any
+
+from rich.console import Console, ConsoleOptions, RenderResult
+from rich.padding import Padding
+from rich.table import Table
+
+
+@dataclass
+class Field:
+    """Represents a name-value pair in a section"""
+
+    name: str
+    value: Any
+
+    def __str__(self) -> str:
+        return f"{self.name}: {self.value}"
+
+
+@dataclass
+class Section:
+    """Represents a section of related fields"""
+
+    name: str
+    fields: list[Field] = field(default_factory=list)
+    show_header: bool = False
+
+    def add(self, field: Field) -> None:
+        """Add a field to the section"""
+        self.fields.append(field)
+
+    def __rich_console__(
+        self, console: Console, options: ConsoleOptions
+    ) -> RenderResult:
+        """Rich console representation for the section"""
+
+        table_options = {
+            "show_header": False,
+            "box": None,
+            "expand": False,
+        }
+
+        if self.show_header:
+            table_options["title"] = self.name
+            table_options["title_justify"] = "left"
+            table_options["title_style"] = "bold"
+
+        table = Table(**table_options)
+        table.add_column(justify="left", highlight=False)
+        table.add_column(justify="left", highlight=True)
+        for section_field in self.fields:
+            table.add_row(section_field.name, str(section_field.value))
+        yield Padding(table, (1, 0, 0, 0))
