@@ -11,6 +11,8 @@ class Entity:
     """Base class for all things"""
 
     entity_type: str = "Unknown"
+    error: bool = False
+    errors: list[str] = None
 
     def get_title(self):
         return f"{self.icon} {self.entity_type}: {self.name}"

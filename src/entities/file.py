@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from ..fields import FilePermissions, FileSize, SystemUser, Timestamp
+from ..fields import EntityName, FilePermissions, FileSize, SystemUser, Timestamp
 from ..presentation import Field, Section
 from .entity import Entity
 
@@ -19,13 +19,10 @@ class File(Entity):
     icon: str = "📄"
     path: Path
 
-    def add_attribute(self, name: str, value: any) -> None:
-        pass
-
     @property
     def name(self) -> Path:
         """Return the file name"""
-        return f"[bold]{self.path.name}[/bold]"
+        return EntityName(self.path.name)
 
     @property
     def size(self) -> FileSize:

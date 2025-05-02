@@ -2,8 +2,19 @@ import stat
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 
 import humanize
+
+
+@dataclass
+class EntityName:
+    """Represents the name of an entity"""
+
+    name: str
+
+    def __str__(self) -> str:
+        return f"[bold]{self.name}[/bold]"
 
 
 @dataclass
