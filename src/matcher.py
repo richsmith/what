@@ -44,7 +44,7 @@ def find_process_by_name(name: str) -> Optional[Process]:
 def match(name) -> Optional[Entity]:
     # check if name parses to an int
     # if name resolves to a file then return a file
-    if os.path.isfile(name):
+    if os.path.isfile(name) or os.path.isdir(name):
         return FileFactory.from_path(name)
 
     # if name resolves to a process ID then return a process
