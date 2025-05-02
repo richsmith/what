@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from urllib import parse as urlparse
 
 import humanize
 
@@ -15,6 +16,16 @@ class EntityName:
 
     def __str__(self) -> str:
         return f"[bold]{self.name}[/bold]"
+
+
+@dataclass
+class PathUri:
+    path: Path
+
+    def __str__(self) -> str:
+        """Format as string"""
+        encoded = urlparse.quote(str(self.path))
+        return f"file://{encoded}"
 
 
 @dataclass

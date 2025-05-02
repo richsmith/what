@@ -13,6 +13,7 @@ from ..fields import (
     FilePermissions,
     FileSize,
     ImageDimensions,
+    PathUri,
     SystemUser,
     Timestamp,
 )
@@ -84,7 +85,7 @@ class File(Entity):
         basic = Section("File")
         basic.add(Field("Name", self.name))
         self.add_path_fields(basic)
-        basic.add(Field("URI", f"file://{self.path}"))
+        basic.add(Field("URI", PathUri(self.path)))
         basic.add(Field("Size", self.size))
         basic.add(Field("Type", self.entity_type))
         yield basic
