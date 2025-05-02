@@ -151,3 +151,15 @@ class Timestamp:
         iso = self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
         human = humanize.naturaltime(self.timestamp)
         return f"{iso} ([italic]{human}[/])"
+
+
+@dataclass
+class ImageDimensions:
+    """Represents image dimensions"""
+
+    x: int
+    y: int
+
+    def __str__(self) -> str:
+        """Format as string"""
+        return f"{self.x} x {self.y}"

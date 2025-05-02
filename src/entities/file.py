@@ -6,7 +6,16 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from ..fields import EntityName, FilePermissions, FileSize, SystemUser, Timestamp
+from PIL import Image
+
+from ..fields import (
+    EntityName,
+    FilePermissions,
+    FileSize,
+    ImageDimensions,
+    SystemUser,
+    Timestamp,
+)
 from ..presentation import Field, Section
 from .entity import Entity
 
@@ -100,6 +109,17 @@ class File(Entity):
 class ImageFile(File):
     """Container for image file information"""
 
+    @property
+    def dimensions(self) -> ImageDimensions:
+        """Return the image dimensions"""
+        return ImageDimensions(*self.get_dimensions())
+
+    def get_dimensions(self) -> tuple[int, int]:
+        """Return the image dimensions"""
+        with Image.open(self.path) as image:
+            width, height = image.size
+        return width, height
+
     def get_sections(self) -> list[Section]:
         """Return sections for the image file presentation"""
         # Call the base class method to get common sections
@@ -107,7 +127,7 @@ class ImageFile(File):
 
         # Image-specific section
         image_info = Section("Image Information")
-        image_info.add(Field("Dimensions", "1920 x 1080"))
+        image_info.add(Field("Dimensions", self.dimensions))
         yield image_info
 
 
@@ -123,10 +143,18 @@ class FileFactory:
             file = SymlinkFile(path=path)
         elif path.is_dir():
             file = Directory(path=path)
+        elif FileFactory.is_image_file(path):
+            file = ImageFile(path=path)
         else:
             file = RegularFile(path=path)
 
         return file
+
+    @staticmethod
+    def is_image_file(file_path: str) -> bool:
+        """Check if the file is an image file"""
+        # FIXME testing
+        return file_path.name.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))
 
 
 @dataclass
