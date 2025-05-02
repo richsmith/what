@@ -2,6 +2,7 @@
 import argparse
 import sys
 
+from . import matcher
 from .entities.file import FileFactory
 from .formatter import Formatter
 
@@ -13,7 +14,7 @@ what - A human-friendly file properties viewer for the command line
 def what(file_path, no_headers=False):
     """Main function to analyze and display file information"""
     try:
-        entity = FileFactory.from_path(file_path)
+        entity = matcher.match(file_path)
         Formatter.format(entity)
         return 0
 
