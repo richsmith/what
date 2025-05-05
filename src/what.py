@@ -27,7 +27,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Display file properties in a human-friendly way"
     )
-    parser.add_argument("file", nargs="+", help="Path to the file(s) to examine")
+    parser.add_argument("name", nargs="+", help="Name of entity to describe")
     parser.add_argument(
         "--no-headers",
         action="store_true",
@@ -38,13 +38,8 @@ def main():
     args = parser.parse_args()
 
     exit_code = 0
-    for file_path in args.file:
-        if len(args.file) > 1:
-            # Add spacing between multiple files
-            if file_path != args.file[0]:
-                print("\n")
-
-        result = what(file_path, args.no_headers)
+    for name in args.name:
+        result = what(name, args.no_headers)
         if result != 0:
             exit_code = result
 
