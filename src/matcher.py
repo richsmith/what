@@ -41,18 +41,33 @@ def find_process_by_name(name: str) -> Optional[Process]:
             return process
 
 
+def match_process(name: str) -> Optional[Process]:
+    """Match a process by its name or PID"""
+    if is_int(name):
+        return find_process_by_pid(name)
+    elif process := find_process_by_name(name):
+        return process
+    else:
+        return None
+
+
+def match_file(name: str) -> Optional[FileFactory]:
+    """Match a file by its name"""
+    abs_path = os.path.abspath(name)
+    if os.path.isfile(abs_path) or os.path.isdir(abs_path):
+        return FileFactory.from_path(abs_path)
+    else:
+        return None
+
+
 def match(name) -> Optional[Entity]:
     # check if name parses to an int
     # if name resolves to a file then return a file
-    if os.path.isfile(name) or os.path.isdir(name):
-        return FileFactory.from_path(name)
+    if path := match_file(name):
+        return path
 
-    # if name resolves to a process ID then return a process
-    elif process := find_process_by_pid(name):
-        return Process(process=process)
-
-    # if name resolves to a process name then return the process
-    elif process := find_process_by_name(name):
+    # if name resolves to a process then return the process
+    elif process := match_process(name):
         return Process(process=process)
 
     # if name resolves to a username then return the user
