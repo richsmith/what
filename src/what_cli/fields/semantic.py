@@ -36,12 +36,6 @@ class MemorySize(Field):
 
     bytes: int
 
-    # def __post_init__(self):
-    #     size_str = humanize.naturalsize(self.bytes)
-    #     if "Bytes" not in size_str:
-    #         bytes = self.bytes
-    #         self.hint = f"{bytes:,} Byte{'s'[:bytes ^ 1]}"
-
     @property
     def content(self) -> str:
         size_str = humanize.naturalsize(self.bytes)
@@ -68,12 +62,13 @@ class SystemUser(Field):
 class Timestamp(Field):
     timestamp: datetime
 
+    def __post_init__(self):
+        self.hint = humanize.naturaltime(self.timestamp)
+
     @property
     def content(self):
         """Format as string"""
-        iso = self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
-        human = humanize.naturaltime(self.timestamp)
-        return f"{iso} ([italic]{human}[/])"
+        return self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
 
 @dataclass
