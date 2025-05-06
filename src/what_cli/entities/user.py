@@ -4,7 +4,7 @@ import spwd
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import Self, override
 
 import psutil
 
@@ -44,6 +44,15 @@ class User(Entity):
         # Also cache
         self.users = psutil.users()
 
+    @override
+    @classmethod
+    def match(cls, name: str) -> Self | None:
+        try:
+            pwd.getpwnam(name)
+            return User(username=name)
+        except KeyError:
+            return False
+
     @property
     def name(self) -> str:
         """Return the user's name"""
@@ -72,7 +81,7 @@ class User(Entity):
             return str(self.pwd_entry.pw_gid)
 
     @property
-    def secondary_groups(self) -> List[str]:
+    def secondary_groups(self) -> list[str]:
         """Return list of secondary groups"""
         groups = []
         for group in grp.getgrall():
@@ -98,7 +107,7 @@ class User(Entity):
         return self.uid < 1000
 
     @property
-    def last_password_change(self) -> Optional[Timestamp]:
+    def last_password_change(self) -> Timestamp | None:
         """Return the date of the last password change"""
         if not self.has_shadow:
             return None
@@ -110,7 +119,7 @@ class User(Entity):
         return None
 
     @property
-    def password_expires(self) -> Optional[Timestamp]:
+    def password_expires(self) -> Timestamp | None:
         """Return the date when the password expires"""
         if not self.has_shadow:
             return None
@@ -124,7 +133,7 @@ class User(Entity):
         return None
 
     @property
-    def account_expires(self) -> Optional[Timestamp]:
+    def account_expires(self) -> Timestamp | None:
         """Return the date when the account expires"""
         if not self.has_shadow:
             return None
@@ -150,7 +159,7 @@ class User(Entity):
         return any(u.name == self.username for u in self.users)
 
     @property
-    def login_sessions(self) -> List[dict]:
+    def login_sessions(self) -> list[dict]:
         """Return information about current login sessions"""
         sessions = []
         for session in self.users:

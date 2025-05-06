@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Self, override
 
 import psutil
 from psutil import Process as ProcessObj
@@ -16,6 +16,30 @@ class Process(Entity):
     entity_type: str = "Process"
     icon: str = "⚙️ "
     process: ProcessObj
+
+    @override
+    @classmethod
+    def match(cls, name: str) -> Self | None:
+        def is_int(name: str) -> bool:
+            try:
+                int(name)
+                return True
+            except ValueError:
+                return False
+
+        def find_process_by_pid(name: str) -> Process | None:
+            if is_int(name) and psutil.pid_exists(int(name)):
+                pid = int(name)
+                process = psutil.Process(pid)
+                return process
+
+        def find_process_by_name(name: str) -> Process | None:
+            for process in psutil.process_iter(attrs=["pid", "name"]):
+                if process.info["name"] == name:
+                    return process
+
+        if process := (find_process_by_pid(name) or find_process_by_name(name)):
+            return cls(process=process)
 
     @property
     def name(self) -> str:

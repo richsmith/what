@@ -1,3 +1,4 @@
+from abc import ABC
 from dataclasses import dataclass
 
 from rich.console import Console, ConsoleOptions, Group, RenderResult, group
@@ -7,7 +8,7 @@ from ..fields import Section
 
 
 @dataclass(kw_only=True)
-class Entity:
+class Entity(ABC):
     """Base class for all things"""
 
     entity_type: str = "Unknown"
@@ -33,3 +34,6 @@ class Entity:
             title=self.get_title(),
             title_align="left",
         )
+
+    def match(str) -> "Entity":
+        raise NotImplementedError("Entities must provide matching functionality")

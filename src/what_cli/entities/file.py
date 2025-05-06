@@ -5,6 +5,7 @@ from abc import ABC
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Self, override
 
 from PIL import Image
 
@@ -107,6 +108,16 @@ class File(Entity):
     def add_path_fields(self, section):
         section.add(LabelField("Path", self.path))
 
+    @override
+    @classmethod
+    def match(cls, name: str) -> Self | None:
+        """Match the file by its name"""
+        abs_path = os.path.abspath(name)
+        if os.path.isfile(abs_path) or os.path.isdir(abs_path):
+            return FileFactory.from_path(abs_path)
+        else:
+            return None
+
 
 @dataclass
 class ImageFile(File):
@@ -161,7 +172,7 @@ class FileFactory:
 
 
 @dataclass
-class RegularFile(ABC, File):
+class RegularFile(File, ABC):
     pass
 
 
