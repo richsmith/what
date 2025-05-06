@@ -35,16 +35,21 @@ class Entity(ABC):
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
         """Rich console representation of the entity"""
-        print(f"{options.max_width=}")
+
         content = self.get_content()
 
+        MIN_CONTENT_WIDTH = 60
+        MIN_PREVIEW_WIDTH = 40
+        console_width = options.max_width
+        show_console = console_width > MIN_CONTENT_WIDTH + MIN_PREVIEW_WIDTH
+
         preview = self.get_preview()
-        if preview is None:
+        if preview is None or show_console is False:
             main = content
         else:
             main = Table(show_header=False, box=None, padding=0, expand=True)
-            main.add_column("Content", min_width=79)
-            main.add_column("Preview", max_width=79)
+            main.add_column("Content", min_width=MIN_CONTENT_WIDTH)
+            main.add_column("Preview", min_width=MIN_PREVIEW_WIDTH)
             main.add_row(content, preview)
 
         yield Panel(
