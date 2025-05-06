@@ -7,6 +7,7 @@ from .semantic import (
     MemorySize,
     NumberField,
     PathUri,
+    QuotedField,
     SystemUser,
     Timestamp,
 )

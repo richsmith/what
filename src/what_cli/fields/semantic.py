@@ -17,7 +17,7 @@ class EntityName(Field):
 
     @property
     def content(self) -> str:
-        return f"[bold]{self.name}[/bold]"
+        return f"[bold]{self.name}[/]"
 
 
 @dataclass
@@ -35,6 +35,17 @@ class NumberField(Field):
             return f"{self.value:,.2f}"
         else:
             raise ValueError(f"Unsupported type: {type(self.value)}")
+
+
+@dataclass
+class QuotedField(Field):
+    """Represents a field with quotes"""
+
+    value: str
+
+    @property
+    def content(self) -> str:
+        return f"[italic]{self.value}[/]"
 
 
 @dataclass

@@ -19,6 +19,7 @@ from ..fields import (
     MemorySize,
     NumberField,
     PathUri,
+    QuotedField,
     Section,
     SystemUser,
     Timestamp,
@@ -214,7 +215,7 @@ class TextFile(File, ABC):
     @property
     def encoding(self) -> str:
         """Return the encoding of the text file"""
-        return self._encoding
+        return QuotedField(self._encoding)
 
     def get_sections(self) -> list[Section]:
         """Return sections for the text file presentation"""
@@ -266,7 +267,7 @@ class CodeFile(TextFile):
         """Return the code content"""
         code = Code(self.path, max_lines=max_lines)
         preview_content = [code]
-        if missing_lines := max(0, self.line_count - max_lines):
+        if missing_lines := max(0, self._line_count - max_lines):
             preview_content.append(f"... +{missing_lines} lines")
         return Group(*preview_content)
 
