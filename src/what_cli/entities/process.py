@@ -1,6 +1,6 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Self, override
+from typing import Self, override
 
 import psutil
 from psutil import Process as ProcessObj
@@ -97,7 +97,7 @@ class Process(Entity):
             return 0
 
     @property
-    def io_stats(self) -> Dict[str, int]:
+    def io_stats(self) -> dict[str, int]:
         """Return I/O statistics"""
         try:
             io = self.process.io_counters()
