@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from numbers import Number
 from pathlib import Path
 from urllib import parse as urlparse
 
@@ -17,6 +18,23 @@ class EntityName(Field):
     @property
     def content(self) -> str:
         return f"[bold]{self.name}[/bold]"
+
+
+@dataclass
+class NumberField(Field):
+    """Represents a number"""
+
+    value: Number
+
+    @property
+    def content(self) -> str:
+        """Format as string"""
+        if isinstance(self.value, int):
+            return f"{self.value:,}"
+        elif isinstance(self.value, float):
+            return f"{self.value:,.2f}"
+        else:
+            raise ValueError(f"Unsupported type: {type(self.value)}")
 
 
 @dataclass

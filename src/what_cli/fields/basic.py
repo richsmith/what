@@ -3,11 +3,12 @@ from dataclasses import dataclass
 
 
 @dataclass(kw_only=True)
-class Field:
+class Field(ABC):
 
     hint: str | None = None
 
     @property
+    @abstractmethod
     def content(self) -> str:
         raise NotImplementedError("Subclasses must provide content")
 
@@ -21,7 +22,7 @@ class Field:
 
 
 @dataclass
-class Hint(Field):
+class Hint:
     """Represent(Field)s a hint for the field"""
 
     hint: str | None = None

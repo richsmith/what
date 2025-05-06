@@ -5,6 +5,7 @@ from .semantic import (
     EntityName,
     ImageDimensions,
     MemorySize,
+    NumberField,
     PathUri,
     SystemUser,
     Timestamp,

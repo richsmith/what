@@ -7,7 +7,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Self, override
 
-import chardet
 from PIL import Image
 from rich.console import Group
 
@@ -18,6 +17,7 @@ from ..fields import (
     ImageDimensions,
     LabelField,
     MemorySize,
+    NumberField,
     PathUri,
     Section,
     SystemUser,
@@ -204,12 +204,12 @@ class TextFile(File, ABC):
     @property
     def line_count(self) -> int:
         """Return the number of lines in the text file"""
-        return self._line_count
+        return NumberField(self._line_count)
 
     @property
     def word_count(self) -> int:
         """Return the number of words in the text file"""
-        return self._word_count
+        return NumberField(self._word_count)
 
     @property
     def encoding(self) -> str:
