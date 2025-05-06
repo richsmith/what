@@ -20,7 +20,7 @@ class Process(Entity):
     @property
     def name(self) -> str:
         """Return the process name"""
-        return f"[bold]{self.process.name()}[/bold]"
+        return f"[bold]{self.process.name()}[/]"
 
     @property
     def pid(self) -> int:
