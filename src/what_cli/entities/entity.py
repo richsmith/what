@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from rich.console import Console, ConsoleOptions, Group, RenderResult, group
 from rich.panel import Panel
 
-from ..presentation import Section
+from ..fields import Section
 
 
 @dataclass(kw_only=True)
@@ -18,8 +18,7 @@ class Entity:
         return f"{self.icon} {self.entity_type}: {self.name}"
 
     def get_sections(self) -> list[Section]:
-        """Return sections for the thing presentation"""
-        yield ["hello"]
+        yield []
 
     @group(fit=True)
     def get_content(self) -> list[Section]:

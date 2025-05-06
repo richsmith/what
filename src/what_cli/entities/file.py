@@ -9,15 +9,17 @@ from pathlib import Path
 from PIL import Image
 
 from ..fields import (
+    Code,
     EntityName,
+    Field,
     FilePermissions,
     FileSize,
     ImageDimensions,
     PathUri,
+    Section,
     SystemUser,
     Timestamp,
 )
-from ..presentation import Field, Section
 from .entity import Entity
 
 
@@ -147,7 +149,7 @@ class FileFactory:
         elif FileFactory.is_image_file(path):
             file = ImageFile(path=path)
         else:
-            file = RegularFile(path=path)
+            file = CodeFile(path=path)
 
         return file
 
@@ -185,3 +187,25 @@ class SymlinkFile(File):
 class Directory(File):
     entity_type: str = "Directory"
     icon: str = "📁"
+
+
+@dataclass
+class CodeFile(RegularFile):
+
+    @property
+    def language(self) -> str:
+        """Return the programming language of the code file"""
+        # Placeholder for actual language detection logic
+        return "Python"
+
+    @property
+    def code(self) -> str:
+        """Return the code content"""
+        return Code(self.path)
+
+    def get_sections(self) -> list[Section]:
+        """Return sections for the code file presentation"""
+        # Call the base class method to get common sections
+        yield from super().get_sections()
+
+        yield self.code

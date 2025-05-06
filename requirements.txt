@@ -1,4 +1,0 @@
-humanize
-pillow
-psutil
-rich

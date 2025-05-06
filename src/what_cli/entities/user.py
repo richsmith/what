@@ -8,8 +8,7 @@ from typing import List, Optional
 
 import psutil
 
-from ..fields import EntityName, FileSize, SystemUser, Timestamp
-from ..presentation import Field, Section
+from ..fields import EntityName, Field, FileSize, Section, SystemUser, Timestamp
 from .entity import Entity
 
 
@@ -18,7 +17,7 @@ class User(Entity):
     """Container for user information"""
 
     entity_type: str = "User"
-    icon: str = "👤 "
+    icon: str = "👤"
     username: str
 
     def __post_init__(self):

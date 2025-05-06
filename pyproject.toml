@@ -1,0 +1,29 @@
+[build-system]
+requires = ["flit_core >=3.11,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "what-cli"
+authors = [{name = "Rich Smith", email = "rls@hwyl.org"}]
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+dynamic = ["version", "description"]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["what", "file", "cli", "util"]
+dependencies = [
+  "humanize >=  4.12.3",
+  "pillow >= 11.2.1",
+  "psutil >= 7.0.0",
+  "rich >= 14.0.0",
+]
+requires-python = ">=3.12"
+
+[project.urls]
+Home = "https://github.com/richsmith/what"
+
+[project.scripts]
+what = "what_cli.__main__:main"
