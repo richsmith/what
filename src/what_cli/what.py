@@ -42,7 +42,7 @@ def run():
         return 0
 
     except Exception as exception:
-        Formatter.format("[red]" + str(exception) + "[/]")
+        display("[red]" + str(exception) + "[/]")
         if args.debug:
             traceback.print_exc()
         return 1

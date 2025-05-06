@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Self, override
 
 from PIL import Image
+from rich.console import Group
 
 from ..fields import (
     Code,
@@ -177,6 +178,41 @@ class RegularFile(File, ABC):
 
 
 @dataclass
+class TextFile(File, ABC):
+
+    def __post_init__(self):
+        lines = 0
+        words = 0
+        with open(self.path, "r") as f:
+            for line in f:
+                lines += 1
+                words += len(line.split())
+        self._line_count = lines
+        self._word_count = words
+
+    @property
+    def line_count(self) -> int:
+        """Return the number of lines in the text file"""
+        return self._line_count
+
+    @property
+    def word_count(self) -> int:
+        """Return the number of words in the text file"""
+        return self._word_count
+
+    def get_sections(self) -> list[Section]:
+        """Return sections for the text file presentation"""
+        # Call the base class method to get common sections
+        yield from super().get_sections()
+
+        # Text-specific section
+        text_info = Section("Content Information")
+        text_info.add(LabelField("Lines", self.line_count))
+        text_info.add(LabelField("Words", self.word_count))
+        yield text_info
+
+
+@dataclass
 class SymlinkFile(File):
     entity_type: str = "Symlink"
     icon: str = "🔗"
@@ -201,7 +237,7 @@ class Directory(File):
 
 
 @dataclass
-class CodeFile(RegularFile):
+class CodeFile(TextFile):
 
     @property
     def language(self) -> str:
@@ -209,14 +245,15 @@ class CodeFile(RegularFile):
         # Placeholder for actual language detection logic
         return "Python"
 
-    @property
-    def code(self) -> str:
+    def get_preview(self, max_lines=20) -> str:
         """Return the code content"""
-        return Code(self.path)
+        code = Code(self.path, max_lines=max_lines)
+        preview_content = [code]
+        if missing_lines := max(0, self.line_count - max_lines):
+            preview_content.append(f"... +{missing_lines} lines")
+        return Group(*preview_content)
 
     def get_sections(self) -> list[Section]:
         """Return sections for the code file presentation"""
         # Call the base class method to get common sections
         yield from super().get_sections()
-
-        yield self.code
