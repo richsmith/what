@@ -117,7 +117,7 @@ class Process(Entity):
         basic.add(LabelField("Name", self.name))
         basic.add(LabelField("PID", self.pid))
         basic.add(LabelField("Status", self.status))
-        basic.add(LabelField("Thread Count", self.thread_count))
+        basic.add(LabelField("Threads", self.thread_count))
 
         resources = Section("Resources")
         resources.add(LabelField("CPU", f"{self.cpu}%"))
