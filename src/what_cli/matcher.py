@@ -1,6 +1,3 @@
-import os
-import pwd
-
 from .entities import Entity, File, Process, User
 
 

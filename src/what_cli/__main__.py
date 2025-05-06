@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+import sys
+
 from . import what
 
 
 def main():
     try:
-        what.run()
+        return what.run()
     except Exception as exception:
         print(f"Error: {str(exception)}")
         return 1

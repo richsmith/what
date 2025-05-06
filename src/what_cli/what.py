@@ -1,10 +1,12 @@
 import argparse
-import sys
 import traceback
+from typing import Any
 
-from . import __version__, matcher
-from .entities.file import FileFactory
-from .formatter import Formatter
+from rich.console import Console
+
+from . import DESCRIPTION, matcher
+
+console = Console()
 
 
 def handle_args():
@@ -18,9 +20,14 @@ def handle_args():
     parser.add_argument(
         "--debug", action="store_true", help="Display debug information"
     )
-    parser.add_argument("-v", "--version", action="version", version=__version__)
+    parser.add_argument("-v", "--version", action="version", version=DESCRIPTION)
 
     return parser.parse_args()
+
+
+def display(data: Any) -> None:
+    # entities are responsible for their own display
+    console.print(data)
 
 
 def run():
@@ -30,7 +37,7 @@ def run():
         name = args.name[0]
 
         entity = matcher.match(name)
-        Formatter.format(entity)
+        display(entity)
 
         return 0
 
