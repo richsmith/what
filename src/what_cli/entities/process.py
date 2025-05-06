@@ -1,11 +1,11 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import psutil
 from psutil import Process as ProcessObj
 
-from ..fields import Field, FileSize, Section, SystemUser, Timestamp
+from ..fields import LabelField, MemorySize, Section, SystemUser, Timestamp
 from .entity import Entity
 
 
@@ -16,13 +16,6 @@ class Process(Entity):
     entity_type: str = "Process"
     icon: str = "⚙️ "
     process: ProcessObj
-    _children: List["Process"] = field(default_factory=list, repr=False)
-    _parent: Optional["Process"] = field(default=None, repr=False)
-
-    def __post_init__(self):
-        """Post-initialization to set up the process object"""
-        # super().__post_init__()
-        self.update_children()
 
     @property
     def name(self) -> str:
@@ -45,9 +38,11 @@ class Process(Entity):
         return Timestamp(datetime.fromtimestamp(self.process.create_time()))
 
     @property
-    def memory(self) -> FileSize:
+    def memory(self) -> MemorySize:
         """Return the process memory usage"""
-        return FileSize(self.process.memory_info().rss)
+        percent = self.process.memory_percent()
+        percent_str = f"{percent:.2f}%"
+        return MemorySize(bytes=self.process.memory_info().rss, hint=percent_str)
 
     @property
     def nice(self) -> int:
@@ -69,42 +64,6 @@ class Process(Entity):
         """Return the process username"""
         return SystemUser(self.process.username())
 
-    # New properties for parent-child relationships
-    @property
-    def parent_pid(self) -> Optional[int]:
-        """Return the parent process ID"""
-        try:
-            return self.process.ppid()
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            return None
-
-    @property
-    def parent(self) -> Optional["Process"]:
-        """Return the parent Process object"""
-        return self._parent
-
-    @parent.setter
-    def parent(self, parent_process: "Process"):
-        """Set the parent Process object"""
-        self._parent = parent_process
-
-    @property
-    def children(self) -> List["Process"]:
-        """Return child processes"""
-        return self._children
-
-    def update_children(self):
-        """Update children list from psutil"""
-        try:
-            child_processes = self.process.children()
-            self._children = [Process(process=child) for child in child_processes]
-            # Set parent reference in children
-            for child in self._children:
-                child.parent = self
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            self._children = []
-
-    # Additional process information
     @property
     def thread_count(self) -> int:
         """Return number of threads"""
@@ -131,25 +90,24 @@ class Process(Entity):
     def get_sections(self) -> list[Section]:
         """Return sections for the process presentation"""
         basic = Section("Process Information")
-        basic.add(Field("Name", self.name))
-        basic.add(Field("PID", self.pid))
-        basic.add(Field("Status", self.status))
-        basic.add(Field("Thread Count", self.thread_count))
+        basic.add(LabelField("Name", self.name))
+        basic.add(LabelField("PID", self.pid))
+        basic.add(LabelField("Status", self.status))
+        basic.add(LabelField("Thread Count", self.thread_count))
 
         resources = Section("Resources")
-        resources.add(Field("CPU", f"{self.cpu}%"))
-        resources.add(Field("Nice", self.nice))
-        resources.add(Field("Memory", self.memory))
-        resources.add(Field("Memory %", f"{self.memory_percent:.2f}%"))
+        resources.add(LabelField("CPU", f"{self.cpu}%"))
+        resources.add(LabelField("Nice", self.nice))
+        resources.add(LabelField("Memory", self.memory))
 
         io = Section("I/O Statistics")
         io_stats = self.io_stats
-        io.add(Field("Read", FileSize(io_stats["read_bytes"])))
-        io.add(Field("Write", FileSize(io_stats["write_bytes"])))
+        io.add(LabelField("Read", MemorySize(io_stats["read_bytes"])))
+        io.add(LabelField("Write", MemorySize(io_stats["write_bytes"])))
 
         started = Section("Started")
-        started.add(Field("Started", self.started))
-        started.add(Field("Command", self.command))
-        started.add(Field("User", self.user))
+        started.add(LabelField("Started", self.started))
+        started.add(LabelField("Command", self.command))
+        started.add(LabelField("User", self.user))
 
         return [basic, resources, io, started]

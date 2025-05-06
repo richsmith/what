@@ -1,10 +1,10 @@
 from .code import Code
-from .containers import Field, Section
+from .containers import LabelField, Section
 from .permissions import FilePermissions
 from .semantic import (
     EntityName,
-    FileSize,
     ImageDimensions,
+    MemorySize,
     PathUri,
     SystemUser,
     Timestamp,

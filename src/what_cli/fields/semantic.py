@@ -9,50 +9,54 @@ from .basic import Field
 
 
 @dataclass
-class EntityName:
+class EntityName(Field):
     """Represents the name of an entity"""
 
     name: str
 
-    def __str__(self) -> str:
+    @property
+    def content(self) -> str:
         return f"[bold]{self.name}[/bold]"
 
 
 @dataclass
-class PathUri:
+class PathUri(Field):
     path: Path
 
-    def __str__(self) -> str:
+    @property
+    def content(self) -> str:
         """Format as string"""
         encoded = urlparse.quote(str(self.path))
         return f"file://{encoded}"
 
 
 @dataclass
-class FileSize:
-    """Represents a file size"""
+class MemorySize(Field):
+    """Represents a memory size"""
 
     bytes: int
 
-    def __str__(self) -> str:
-        size_str = humanize.naturalsize(self.bytes)
-        if "Bytes" not in size_str:
-            bytes = self.bytes
-            size_str += f" ({bytes:,} Byte{'s'[:bytes ^ 1]})"
-        return size_str
+    # def __post_init__(self):
+    #     size_str = humanize.naturalsize(self.bytes)
+    #     if "Bytes" not in size_str:
+    #         bytes = self.bytes
+    #         self.hint = f"{bytes:,} Byte{'s'[:bytes ^ 1]}"
 
-    def human_readable(self) -> str:
-        return
+    @property
+    def content(self) -> str:
+        size_str = humanize.naturalsize(self.bytes)
+        return size_str
 
 
 @dataclass
-class SystemUser:
+class SystemUser(Field):
     """Represents a system user or group"""
 
     name: str
     id: int = None
 
-    def __str__(self) -> str:
+    @property
+    def content(self) -> str:
         """Format as string"""
         name = f"[bold yellow]{self.name}[/]"
         if self.id:
@@ -61,10 +65,11 @@ class SystemUser:
 
 
 @dataclass
-class Timestamp:
+class Timestamp(Field):
     timestamp: datetime
 
-    def __str__(self):
+    @property
+    def content(self):
         """Format as string"""
         iso = self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
         human = humanize.naturaltime(self.timestamp)
@@ -72,12 +77,13 @@ class Timestamp:
 
 
 @dataclass
-class ImageDimensions:
+class ImageDimensions(Field):
     """Represents image dimensions"""
 
     x: int
     y: int
 
-    def __str__(self) -> str:
+    @property
+    def content(self) -> str:
         """Format as string"""
         return f"{self.x} x {self.y}"

@@ -11,10 +11,10 @@ from PIL import Image
 from ..fields import (
     Code,
     EntityName,
-    Field,
     FilePermissions,
-    FileSize,
     ImageDimensions,
+    LabelField,
+    MemorySize,
     PathUri,
     Section,
     SystemUser,
@@ -37,9 +37,9 @@ class File(Entity):
         return EntityName(self.path.name)
 
     @property
-    def size(self) -> FileSize:
+    def size(self) -> MemorySize:
         """Return the file size"""
-        return FileSize(self._stat.st_size)
+        return MemorySize(bytes=self._stat.st_size)
 
     @property
     def _stat(self) -> os.stat_result:
@@ -85,27 +85,27 @@ class File(Entity):
         """Return sections for the file presentation"""
 
         basic = Section("File")
-        basic.add(Field("Name", self.name))
+        basic.add(LabelField("Name", self.name))
         self.add_path_fields(basic)
-        basic.add(Field("URI", PathUri(self.path)))
-        basic.add(Field("Size", self.size))
-        basic.add(Field("Type", self.entity_type))
+        basic.add(LabelField("URI", PathUri(self.path)))
+        basic.add(LabelField("Size", self.size))
+        basic.add(LabelField("Type", self.entity_type))
         yield basic
 
         ownership = Section("Permissions")
-        ownership.add(Field("Owner", self.owner))
-        ownership.add(Field("Group", self.user_group))
-        ownership.add(Field("Permissions", self.permissions))
+        ownership.add(LabelField("Owner", self.owner))
+        ownership.add(LabelField("Group", self.user_group))
+        ownership.add(LabelField("Permissions", self.permissions))
         yield ownership
 
         timestamps = Section("Timestamps")
-        timestamps.add(Field("Created", self.created))
-        timestamps.add(Field("Modified", self.modified))
-        timestamps.add(Field("Accessed", self.accessed))
+        timestamps.add(LabelField("Created", self.created))
+        timestamps.add(LabelField("Modified", self.modified))
+        timestamps.add(LabelField("Accessed", self.accessed))
         yield timestamps
 
     def add_path_fields(self, section):
-        section.add(Field("Path", self.path))
+        section.add(LabelField("Path", self.path))
 
 
 @dataclass
@@ -130,7 +130,7 @@ class ImageFile(File):
 
         # Image-specific section
         image_info = Section("Image Information")
-        image_info.add(Field("Dimensions", self.dimensions))
+        image_info.add(LabelField("Dimensions", self.dimensions))
         yield image_info
 
 
@@ -180,7 +180,7 @@ class SymlinkFile(File):
 
     def add_path_fields(self, section):
         super().add_path_fields(section)
-        section.add(Field("Link", "↪️ " + self.target))
+        section.add(LabelField("Link", "↪️ " + self.target))
 
 
 @dataclass

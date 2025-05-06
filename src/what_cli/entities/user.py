@@ -8,7 +8,7 @@ from typing import List, Optional
 
 import psutil
 
-from ..fields import EntityName, Field, FileSize, Section, SystemUser, Timestamp
+from ..fields import EntityName, LabelField, MemorySize, Section, SystemUser, Timestamp
 from .entity import Entity
 
 
@@ -171,7 +171,7 @@ class User(Entity):
         return len(self.processes)
 
     @property
-    def memory_usage(self) -> FileSize:
+    def memory_usage(self) -> MemorySize:
         """Return the total memory used by this user's processes"""
         total_memory = 0
         for pid in self.processes:
@@ -181,57 +181,59 @@ class User(Entity):
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
 
-        return FileSize(total_memory)
+        return MemorySize(bytes=total_memory)
 
     def get_sections(self) -> list[Section]:
         """Return sections for the user presentation"""
 
         # Basic user information
         basic = Section("User Information")
-        basic.add(Field("Name", self.name))
-        basic.add(Field("Username", SystemUser(self.username)))
-        basic.add(Field("UID", self.uid))
+        basic.add(LabelField("Name", self.name))
+        basic.add(LabelField("Username", SystemUser(self.username)))
+        basic.add(LabelField("UID", self.uid))
         basic.add(
-            Field("Type", "System User" if self.is_system_user else "Regular User")
+            LabelField("Type", "System User" if self.is_system_user else "Regular User")
         )
 
         # Group membership
         groups = Section("Group Membership")
-        groups.add(Field("Primary Group", f"{self.primary_group} ({self.gid})"))
+        groups.add(LabelField("Primary Group", f"{self.primary_group} ({self.gid})"))
         if self.secondary_groups:
-            groups.add(Field("Secondary Groups", ", ".join(self.secondary_groups)))
+            groups.add(LabelField("Secondary Groups", ", ".join(self.secondary_groups)))
 
         # Account details
         account = Section("Account Details")
-        account.add(Field("Home", self.home_directory))
-        account.add(Field("Shell", self.shell))
+        account.add(LabelField("Home", self.home_directory))
+        account.add(LabelField("Shell", self.shell))
 
         if self.has_shadow:
             account.add(
                 Field("Last Password Change", self.last_password_change or "Never")
             )
             if self.password_expires:
-                account.add(Field("Password Expires", self.password_expires))
+                account.add(LabelField("Password Expires", self.password_expires))
             if self.account_expires:
-                account.add(Field("Account Expires", self.account_expires))
+                account.add(LabelField("Account Expires", self.account_expires))
             account.add(
                 Field("Account Status", "Locked" if self.account_locked else "Active")
             )
 
         # Login status
         login = Section("Login Status")
-        login.add(Field("Logged In", True if self.is_logged_in else False))
+        login.add(LabelField("Logged In", True if self.is_logged_in else False))
 
         if self.is_logged_in:
             for i, session in enumerate(self.login_sessions, 1):
-                login.add(Field(f"Session {i}", f"Terminal: {session['terminal']}"))
+                login.add(
+                    LabelField(f"Session {i}", f"Terminal: {session['terminal']}")
+                )
                 if session["host"]:
-                    login.add(Field(f"From Host {i}", session["host"]))
-                login.add(Field(f"Login Time {i}", session["started"]))
+                    login.add(LabelField(f"From Host {i}", session["host"]))
+                login.add(LabelField(f"Login Time {i}", session["started"]))
 
         # Process information
         processes = Section("Processes")
-        processes.add(Field("Process Count", self.process_count))
-        processes.add(Field("Memory Usage", self.memory_usage))
+        processes.add(LabelField("Process Count", self.process_count))
+        processes.add(LabelField("Memory Usage", self.memory_usage))
 
         return [basic, groups, account, login, processes]

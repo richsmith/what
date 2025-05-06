@@ -7,7 +7,7 @@ from rich.table import Table
 
 
 @dataclass
-class Field:
+class LabelField:
     """Represents a name-value pair in a section"""
 
     name: str
@@ -22,10 +22,10 @@ class Section:
     """Represents a section of related fields"""
 
     name: str
-    fields: list[Field] = field(default_factory=list)
+    fields: list[LabelField] = field(default_factory=list)
     show_header: bool = False
 
-    def add(self, field: Field) -> None:
+    def add(self, field: LabelField) -> None:
         """Add a field to the section"""
         self.fields.append(field)
 
