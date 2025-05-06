@@ -15,8 +15,9 @@ classifiers = [
 ]
 keywords = ["what", "file", "cli", "util"]
 dependencies = [
-  "humanize >=  4.12.3",
-  "pillow >= 11.2.1",
+  "chardet >= 5.2.0",
+  "humanize >=  4.12.0",
+  "pillow >= 11.2.0",
   "psutil >= 7.0.0",
   "rich >= 14.0.0",
 ]

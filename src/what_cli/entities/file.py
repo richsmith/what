@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Self, override
 
+import chardet
 from PIL import Image
 from rich.console import Group
 
@@ -181,14 +182,24 @@ class RegularFile(File, ABC):
 class TextFile(File, ABC):
 
     def __post_init__(self):
-        lines = 0
-        words = 0
-        with open(self.path, "r") as f:
+        from chardet.universaldetector import UniversalDetector
+
+        detector = UniversalDetector()
+
+        line_count = 0
+        word_count = 0
+        with open(self.path, "rb") as f:
             for line in f:
-                lines += 1
-                words += len(line.split())
-        self._line_count = lines
-        self._word_count = words
+                line_count += 1
+                word_count += len(line.split())
+                if not detector.done:
+                    detector.feed(line)
+        detector.close()
+
+        self._line_count = line_count
+        self._word_count = word_count
+
+        self._encoding = detector.result["encoding"]
 
     @property
     def line_count(self) -> int:
@@ -200,6 +211,11 @@ class TextFile(File, ABC):
         """Return the number of words in the text file"""
         return self._word_count
 
+    @property
+    def encoding(self) -> str:
+        """Return the encoding of the text file"""
+        return self._encoding
+
     def get_sections(self) -> list[Section]:
         """Return sections for the text file presentation"""
         # Call the base class method to get common sections
@@ -207,6 +223,7 @@ class TextFile(File, ABC):
 
         # Text-specific section
         text_info = Section("Content Information")
+        text_info.add(LabelField("Encoding", self.encoding))
         text_info.add(LabelField("Lines", self.line_count))
         text_info.add(LabelField("Words", self.word_count))
         yield text_info
