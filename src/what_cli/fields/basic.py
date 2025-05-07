@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 from rich.console import Console, ConsoleOptions, RenderResult
-from rich.text import Text
 
 
 @dataclass(kw_only=True)

@@ -2,6 +2,7 @@ from abc import ABC
 from dataclasses import dataclass
 
 from rich.console import Console, ConsoleOptions, RenderResult, group
+from rich.padding import Padding
 from rich.panel import Panel
 from rich.table import Table
 
@@ -50,12 +51,14 @@ class Entity(ABC):
             main = Table(show_header=False, box=None, padding=0, expand=True)
             main.add_column("Content", min_width=MIN_CONTENT_WIDTH)
             main.add_column("Preview", min_width=MIN_PREVIEW_WIDTH)
-            main.add_row(content, preview)
+            padded_preview = Padding(preview, (1, 0, 0, 0))
+            main.add_row(content, padded_preview)
 
         yield Panel(
             main,
             title=self.get_title(),
             title_align="left",
+            padding=(0, 1, 1, 1),
         )
 
     def match(self, query: str) -> bool:

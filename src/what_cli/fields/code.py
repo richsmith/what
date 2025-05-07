@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from rich.console import Console, ConsoleOptions, RenderResult
-from rich.padding import Padding
 from rich.syntax import Syntax
 
 
@@ -21,4 +20,4 @@ class Code:
             line_numbers=self.line_numbers,
             line_range=(1, self.max_lines),
         )
-        yield Padding(syntax, (1, 1, 1, 0))
+        yield syntax

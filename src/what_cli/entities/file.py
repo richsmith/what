@@ -91,7 +91,7 @@ class File(Entity):
         basic = Section("File")
         basic.add(LabelField("Name", self.name))
         self.add_path_fields(basic)
-        basic.add(LabelField("URI", PathUri(self.path)))
+        basic.add(LabelField("URI", PathUri(path=self.path)))
         basic.add(LabelField("Size", self.size))
         basic.add(LabelField("Type", QuotedField(value=self.entity_type)))
         yield basic

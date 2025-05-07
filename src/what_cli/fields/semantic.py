@@ -30,7 +30,6 @@ class NumberField(Field):
 
     @property
     def content(self) -> str:
-        """Format as string"""
         if isinstance(self.value, int):
             return f"{self.value:,}"
         elif isinstance(self.value, float):
@@ -51,13 +50,13 @@ class QuotedField(Field):
         return self.value
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PathUri(Field):
     path: Path
+    styles: str | list[str] = field(default_factory=lambda: "underline")
 
     @property
     def content(self) -> str:
-        """Format as string"""
         encoded = urlparse.quote(str(self.path))
         return f"file://{encoded}"
 
@@ -109,7 +108,6 @@ class Timestamp(Field):
 
     @property
     def content(self):
-        """Format as string"""
         return self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -122,5 +120,4 @@ class ImageDimensions(Field):
 
     @property
     def content(self) -> str:
-        """Format as string"""
         return f"{self.x} x {self.y}"
