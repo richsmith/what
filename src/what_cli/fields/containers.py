@@ -35,7 +35,7 @@ class Section:
         """Rich console representation for the section"""
 
         table_options = {
-            "show_header": False,
+            "show_header": self.show_header,
             "box": None,
             "expand": False,
         }
