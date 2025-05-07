@@ -5,6 +5,7 @@ from pathlib import Path
 from urllib import parse as urlparse
 
 import humanize
+from psutil import Process
 
 from .basic import Field
 
@@ -57,6 +58,18 @@ class PathUri(Field):
         """Format as string"""
         encoded = urlparse.quote(str(self.path))
         return f"file://{encoded}"
+
+
+@dataclass(kw_only=True)
+class ProcessField(Field):
+    process: Process
+
+    def __post_init__(self):
+        self.hint = f"PID: {self.process.pid}"
+
+    @property
+    def content(self) -> str:
+        return self.process.name()
 
 
 @dataclass

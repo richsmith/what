@@ -4,8 +4,16 @@ from typing import Self, override
 
 import psutil
 from psutil import Process as ProcessObj
+from rich.tree import Tree
 
-from ..fields import LabelField, MemorySize, Section, SystemUser, Timestamp
+from ..fields import (
+    LabelField,
+    MemorySize,
+    ProcessField,
+    Section,
+    SystemUser,
+    Timestamp,
+)
 from .entity import Entity
 
 
@@ -135,3 +143,59 @@ class Process(Entity):
         started.add(LabelField("User", self.user))
 
         return [basic, resources, io, started]
+
+    def get_lineage(self) -> list[ProcessObj]:
+        """Return a list of ancestor processes"""
+        ancestors = [self.process]
+        current = ancestors[0]
+        while current.ppid() != 0:
+            try:
+                parent = psutil.Process(current.ppid())
+                ancestors.append(parent)
+                current = parent
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                break
+        return list(reversed(ancestors))
+
+    def get_children(self) -> list[ProcessObj]:
+        """Return a list of child processes"""
+        children = []
+        try:
+            for child in self.process.children(recursive=False):
+                children.append(child)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+        return children
+
+    def get_preview(self) -> Tree:
+        """Return a tree view of process relationships (ancestors and children)"""
+
+        ANCESTOR = ["blue"]
+        THIS = ["bold", "yellow"]
+        CHILD = ["green"]
+
+        def create_tree_node(process, styles):
+            """Create a tree node with process information"""
+            if process is self.process:
+                styles = THIS
+            return ProcessField(process=process, styles=styles)
+
+        try:
+            lineage = self.get_lineage()
+            process_tree = Tree(create_tree_node(lineage[0], ANCESTOR))
+
+            node = process_tree
+            for ancestor in lineage[1:]:
+                node = node.add(
+                    create_tree_node(ancestor, ANCESTOR),
+                )
+
+            for child in self.get_children():
+                node.add(create_tree_node(child, CHILD))
+
+            return process_tree
+
+        except Exception as e:
+            error_tree = Tree("[bold red]Error generating process tree[/]")
+            error_tree.add(f"[red]{str(e)}[/]")
+            return error_tree
