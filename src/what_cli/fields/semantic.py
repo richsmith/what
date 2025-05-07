@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from numbers import Number
 from pathlib import Path
@@ -10,15 +10,16 @@ from psutil import Process
 from .basic import Field
 
 
-@dataclass
+@dataclass(kw_only=True)
 class EntityName(Field):
     """Represents the name of an entity"""
 
     name: str
+    styles: str | list[str] = field(default_factory=lambda: "bold")
 
     @property
     def content(self) -> str:
-        return f"[bold]{self.name}[/]"
+        return self.name
 
 
 @dataclass
@@ -38,15 +39,16 @@ class NumberField(Field):
             raise ValueError(f"Unsupported type: {type(self.value)}")
 
 
-@dataclass
+@dataclass(kw_only=True)
 class QuotedField(Field):
     """Represents a field with quotes"""
 
     value: str
+    styles: str | list[str] = field(default_factory=lambda: "italic")
 
     @property
     def content(self) -> str:
-        return f"[italic]{self.value}[/]"
+        return self.value
 
 
 @dataclass
@@ -84,20 +86,18 @@ class MemorySize(Field):
         return size_str
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SystemUser(Field):
     """Represents a system user or group"""
 
     name: str
-    id: int = None
+
+    styles: str | list[str] = field(default_factory=lambda: ["bold yellow"])
 
     @property
     def content(self) -> str:
         """Format as string"""
-        name = f"[bold yellow]{self.name}[/]"
-        if self.id:
-            name += f" (ID: {self.id})"
-        return name
+        return self.name
 
 
 @dataclass

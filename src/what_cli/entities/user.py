@@ -60,7 +60,7 @@ class User(Entity):
         gecos = self.pwd_entry.pw_gecos.split(",")
         full_name = gecos[0] if gecos and gecos[0] else self.username
 
-        return EntityName(full_name)
+        return EntityName(name=full_name)
 
     @property
     def uid(self) -> int:
@@ -198,7 +198,7 @@ class User(Entity):
         # Basic user information
         basic = Section("User Information")
         basic.add(LabelField("Name", self.name))
-        basic.add(LabelField("Username", SystemUser(self.username)))
+        basic.add(LabelField("Username", SystemUser(name=self.username)))
         basic.add(LabelField("UID", self.uid))
         basic.add(
             LabelField("Type", "System User" if self.is_system_user else "Regular User")

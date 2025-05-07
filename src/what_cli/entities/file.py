@@ -38,7 +38,7 @@ class File(Entity):
     @property
     def name(self) -> Path:
         """Return the file name"""
-        return EntityName(self.path.name)
+        return EntityName(name=self.path.name)
 
     @property
     def size(self) -> MemorySize:
@@ -73,17 +73,17 @@ class File(Entity):
     def owner(self) -> SystemUser:
         """Return the file owner"""
         try:
-            return SystemUser(pwd.getpwuid(self._stat.st_uid).pw_name)
+            return SystemUser(name=pwd.getpwuid(self._stat.st_uid).pw_name)
         except KeyError:
-            return SystemUser(str(self._stat.st_uid))
+            return SystemUser(name=str(self._stat.st_uid))
 
     @property
     def user_group(self) -> SystemUser:
         """Return the file group"""
         try:
-            return SystemUser(grp.getgrgid(self._stat.st_gid).gr_name)
+            return SystemUser(name=grp.getgrgid(self._stat.st_gid).gr_name)
         except KeyError:
-            return SystemUser(str(self._stat.st_gid))
+            return SystemUser(name=str(self._stat.st_gid))
 
     def get_sections(self) -> list[Section]:
         """Return sections for the file presentation"""
@@ -93,7 +93,7 @@ class File(Entity):
         self.add_path_fields(basic)
         basic.add(LabelField("URI", PathUri(self.path)))
         basic.add(LabelField("Size", self.size))
-        basic.add(LabelField("Type", self.entity_type))
+        basic.add(LabelField("Type", QuotedField(value=self.entity_type)))
         yield basic
 
         ownership = Section("Permissions")
@@ -215,7 +215,7 @@ class TextFile(File, ABC):
     @property
     def encoding(self) -> str:
         """Return the encoding of the text file"""
-        return QuotedField(self._encoding)
+        return QuotedField(value=self._encoding)
 
     def get_sections(self) -> list[Section]:
         """Return sections for the text file presentation"""

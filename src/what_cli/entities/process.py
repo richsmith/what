@@ -94,7 +94,7 @@ class Process(Entity):
     @property
     def user(self) -> str:
         """Return the process username"""
-        return SystemUser(self.process.username())
+        return SystemUser(name=self.process.username())
 
     @property
     def thread_count(self) -> int:

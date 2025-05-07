@@ -16,35 +16,25 @@ class Field(ABC):
     def content(self) -> str:
         raise NotImplementedError("Subclasses must provide content")
 
-    def __str__(self) -> str:
-        return str(self.assemble_field())
-
-    def _as_tuple(self, text, styles):
-        style_str = " ".join(styles)
-        return (text, style_str) if style_str else text
+    def _with_style(self, obj, styles):
+        style_str = " ".join(styles) if isinstance(styles, list) else styles
+        return f"[{style_str}]{obj}[/]" if style_str else obj
 
     def assemble_field(self):
-        parts = []
-        content_tuple = self._as_tuple(str(self.content), self.styles)
-        parts.append(content_tuple)
+
+        text = self._with_style(self.content, self.styles)
 
         if self.hint:
-            hint_tuple = self._as_tuple(f" ({self.hint})", self.hint_styles)
-            parts.append(hint_tuple)
+            hint_str = self._with_style(self.hint, self.hint_styles)
+            text += f" ({hint_str})"
 
-        text = Text.assemble(*parts)
         return text
+
+    def __str__(self) -> str:
+        return str(self.assemble_field())
 
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
         text = self.assemble_field()
         yield text
-
-
-@dataclass
-class Hint:
-    hint: str | None = None
-
-    def __str__(self) -> str:
-        return f"[italic]{self.hint}[/]" if self.hint else ""

@@ -46,8 +46,12 @@ class Section:
             table_options["title_style"] = "bold"
 
         table = Table(**table_options)
-        table.add_column(justify="left", highlight=False)
+        table.add_column(justify="right", highlight=False)
         table.add_column(justify="left", highlight=True)
         for section_field in self.fields:
-            table.add_row(section_field.name, str(section_field.value))
+            name = section_field.name
+            value = section_field.value
+            if not hasattr(value, "__rich_console__"):
+                value = str(value)
+            table.add_row(name, value)
         yield Padding(table, (1, 0, 0, 0))
