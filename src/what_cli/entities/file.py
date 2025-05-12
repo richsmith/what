@@ -7,8 +7,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Self, override
 
+from ascii_magic import AsciiArt
 from PIL import Image
-from rich.console import Group
+from rich.console import Group, Text
+from rich.panel import Panel
+from rich.table import Table
 
 from ..fields import (
     Code,
@@ -146,6 +149,24 @@ class ImageFile(File):
         image_info = Section("Image Information")
         image_info.add(LabelField("Dimensions", self.dimensions))
         yield image_info
+
+    def get_preview(self, cols=40):
+        art = AsciiArt.from_image(self.path)
+        ascii_art = art.to_ascii(columns=cols)
+
+        grid = Table.grid()
+        [grid.add_column() for _ in range(cols)]
+        for row in ascii_art.splitlines():
+            row = Text.from_ansi(row)
+            grid.add_row(*row)
+
+        return Panel(
+            grid,
+            highlight=False,
+            title="Preview",
+            border_style="dim",
+            title_align="center",
+        )
 
 
 class FileFactory:
