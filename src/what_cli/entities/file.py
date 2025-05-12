@@ -111,6 +111,12 @@ class File(Entity):
         timestamps.add(LabelField("Accessed", self.accessed))
         yield timestamps
 
+        yield from self.get_content_sections()
+
+    def get_content_sections(self) -> list[Section]:
+        """Return sections for the file type-specific content"""
+        return []
+
     def add_path_fields(self, section):
         section.add(LabelField("Path", self.path))
 
@@ -238,12 +244,8 @@ class TextFile(File, ABC):
         """Return the encoding of the text file"""
         return QuotedField(value=self._encoding)
 
-    def get_sections(self) -> list[Section]:
+    def get_content_sections(self) -> list[Section]:
         """Return sections for the text file presentation"""
-        # Call the base class method to get common sections
-        yield from super().get_sections()
-
-        # Text-specific section
         text_info = Section("Content Information")
         text_info.add(LabelField("Encoding", self.encoding))
         text_info.add(LabelField("Lines", self.line_count))
