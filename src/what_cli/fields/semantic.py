@@ -53,7 +53,7 @@ class QuotedField(Field):
 @dataclass(kw_only=True)
 class PathUri(Field):
     path: Path
-    styles: str | list[str] = field(default_factory=lambda: "underline")
+    styles: str | list[str] = field(default_factory=lambda: "link")
 
     @property
     def content(self) -> str:
