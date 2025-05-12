@@ -146,12 +146,8 @@ class ImageFile(File):
             width, height = image.size
         return width, height
 
-    def get_sections(self) -> list[Section]:
+    def get_content_sections(self) -> list[Section]:
         """Return sections for the image file presentation"""
-        # Call the base class method to get common sections
-        yield from super().get_sections()
-
-        # Image-specific section
         image_info = Section("Image Information")
         image_info.add(LabelField("Dimensions", self.dimensions))
         yield image_info
