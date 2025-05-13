@@ -99,28 +99,35 @@ class File(Entity):
     def get_sections(self) -> list[Section]:
         """Return sections for the file presentation"""
 
+        yield self.get_basic()
+        yield self.get_permissions()
+        yield self.get_timestamps()
+
+        yield from self.get_content_sections()
+
+    def get_basic(self) -> list[Section]:
         basic = Section("File")
         basic.add(LabelField("Name", self.name))
         self.add_path_fields(basic)
         basic.add(LabelField("URI", PathUri(path=self.path)))
         basic.add(LabelField("Size", self.size))
         basic.add(LabelField("Type", QuotedField(value=self.entity_type)))
-        basic.add(LabelField("MIME", self.mime_type))
-        yield basic
+        return basic
 
+    def get_permissions(self) -> list[Section]:
         ownership = Section("Permissions")
         ownership.add(LabelField("Owner", self.owner))
         ownership.add(LabelField("Group", self.user_group))
-        ownership.add(LabelField("Permissions", self.permissions))
-        yield ownership
+        ownership.add(LabelField("RWX", self.permissions))
+        return ownership
 
+    def get_timestamps(self) -> list[Section]:
+        """Return sections for the file timestamps"""
         timestamps = Section("Timestamps")
         timestamps.add(LabelField("Created", self.created))
         timestamps.add(LabelField("Modified", self.modified))
         timestamps.add(LabelField("Accessed", self.accessed))
-        yield timestamps
-
-        yield from self.get_content_sections()
+        return timestamps
 
     def get_content_sections(self) -> list[Section]:
         """Return sections for the file type-specific content"""
@@ -141,7 +148,15 @@ class File(Entity):
 
 
 @dataclass
-class ImageFile(File):
+class RegularFile(File, ABC):
+    def get_basic(self) -> list[Section]:
+        basic = super().get_basic()
+        basic.add(LabelField("MIME", self.mime_type))
+        return basic
+
+
+@dataclass
+class ImageFile(RegularFile):
     """Container for image file information"""
 
     @property
@@ -209,12 +224,7 @@ class FileFactory:
 
 
 @dataclass
-class RegularFile(File, ABC):
-    pass
-
-
-@dataclass
-class TextFile(File, ABC):
+class TextFile(RegularFile, ABC):
 
     def __post_init__(self):
         from chardet.universaldetector import UniversalDetector
