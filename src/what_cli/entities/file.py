@@ -15,6 +15,7 @@ from rich.table import Table
 
 from ..fields import (
     Code,
+    DirectorySummary,
     EntityName,
     FilePermissions,
     ImageDimensions,
@@ -273,6 +274,22 @@ class SymlinkFile(File):
 class Directory(File):
     entity_type: str = "Directory"
     icon: str = "📁"
+
+    def __post_init__(self):
+        self._items = list(self.path.iterdir())
+
+    @property
+    def summary(self) -> str:
+        """Return a summary of the directory content"""
+        files = sum(1 for item in self._items if item.is_file())
+        directories = sum(1 for item in self._items if item.is_dir())
+        return DirectorySummary(directories=directories, files=files)
+
+    def get_content_sections(self) -> list[Section]:
+        """Return sections for the directory content"""
+        directory_info = Section("Directory Information")
+        directory_info.add(LabelField("Contains", self.summary))
+        yield directory_info
 
 
 @dataclass

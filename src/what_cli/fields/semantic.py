@@ -121,3 +121,22 @@ class ImageDimensions(Field):
     @property
     def content(self) -> str:
         return f"{self.x} x {self.y}"
+
+
+@dataclass
+class DirectorySummary(Field):
+    directories: int
+    files: int
+
+    def __post_init__(self):
+        parts = []
+        if self.directories:
+            parts.append(f"{self.directories:,} directories")
+        if self.files:
+            parts.append(f"{self.files:,} files")
+        self.hint = "; ".join(parts)
+
+    @property
+    def content(self) -> str:
+        total = self.directories + self.files
+        return f"{total:,} items"
