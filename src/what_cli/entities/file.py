@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Self, override
 
+import magic
 from ascii_magic import AsciiArt
 from PIL import Image
 from rich.console import Group, Text
@@ -48,6 +49,12 @@ class File(Entity):
     def size(self) -> MemorySize:
         """Return the file size"""
         return MemorySize(bytes=self._stat.st_size)
+
+    @property
+    def mime_type(self) -> str:
+        """Return the file mime type"""
+        mime = magic.from_file(self.path, mime=True)
+        return mime
 
     @property
     def _stat(self) -> os.stat_result:
@@ -98,6 +105,7 @@ class File(Entity):
         basic.add(LabelField("URI", PathUri(path=self.path)))
         basic.add(LabelField("Size", self.size))
         basic.add(LabelField("Type", QuotedField(value=self.entity_type)))
+        basic.add(LabelField("MIME", self.mime_type))
         yield basic
 
         ownership = Section("Permissions")
