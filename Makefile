@@ -1,4 +1,5 @@
-CONFIG := $(XDG_CONFIG_HOME)/pypirc
+install-local:
+	pip install -e ".[dev]"
 
-publish-test:
-	flit publish --repository testpypi
+test:
+	pytest
