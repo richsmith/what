@@ -209,8 +209,10 @@ class FileFactory:
             file = Directory(path=path)
         elif FileFactory.is_image_file(path):
             file = ImageFile(path=path)
-        else:
+        elif CodeFile.match(path=path):
             file = CodeFile(path=path)
+        else:
+            file = RegularFile(path=path)
 
         return file
 
@@ -313,13 +315,25 @@ class Directory(File):
 @dataclass
 class CodeFile(TextFile):
 
+    @classmethod
+    def get_language(cls, path: Path) -> str:
+        sample = path.read_text()[:20]
+        from pygments.lexers import guess_lexer
+
+        lexer = guess_lexer(sample)
+        if lexer:
+            return lexer.name
+
+    @classmethod
+    def match(cls, path: Path):
+        if cls.get_language(path):
+            return True
+
     @property
     def language(self) -> str:
-        """Return the programming language of the code file"""
-        # Placeholder for actual language detection logic
-        return "Python"
+        return self.get_language(self.path)
 
-    def get_preview(self, max_lines=20) -> str:
+    def get_preview(self, max_lines=20):
         """Return the code content"""
         code = Code(self.path, max_lines=max_lines)
         preview_content = [code]
@@ -327,7 +341,10 @@ class CodeFile(TextFile):
             preview_content.append(f"... +{missing_lines} lines")
         return Group(*preview_content)
 
-    def get_sections(self) -> list[Section]:
+    def get_content_sections(self) -> list[Section]:
         """Return sections for the code file presentation"""
-        # Call the base class method to get common sections
-        yield from super().get_sections()
+        code_info = Section("Code Information")
+        code_info.add(LabelField("Language", self.language))
+        code_info.add(LabelField("Encoding", self.encoding))
+        code_info.add(LabelField("Lines", self.line_count))
+        yield code_info
