@@ -326,8 +326,11 @@ class CodeFile(TextFile):
 
     @classmethod
     def match(cls, path: Path):
-        if cls.get_language(path):
-            return True
+        try:
+            matched_a_language = bool(cls.get_language(path))
+            return matched_a_language
+        except Exception:
+            return False
 
     @property
     def language(self) -> str:
