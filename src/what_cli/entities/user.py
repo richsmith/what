@@ -1,6 +1,5 @@
 import grp
 import pwd
-import spwd
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -27,13 +26,6 @@ class User(Entity):
         except KeyError:
             self.errors.append(f"User '{self.username}' not found")
             return
-
-        # Get shadow information if possible (requires root)
-        try:
-            self.shadow = spwd.getspnam(self.username)
-            self.has_shadow = True
-        except (KeyError, PermissionError):
-            self.has_shadow = False
 
         # cache here to avoid multiple calls to psutil
         self.processes = [
@@ -107,53 +99,6 @@ class User(Entity):
         return self.uid < 1000
 
     @property
-    def last_password_change(self) -> Timestamp | None:
-        """Return the date of the last password change"""
-        if not self.has_shadow:
-            return None
-
-        if self.shadow.sp_lstchg > 0:
-            change_date = datetime.fromtimestamp(self.shadow.sp_lstchg * 86400)
-            return Timestamp(change_date)
-
-        return None
-
-    @property
-    def password_expires(self) -> Timestamp | None:
-        """Return the date when the password expires"""
-        if not self.has_shadow:
-            return None
-
-        if self.shadow.sp_lstchg > 0 and self.shadow.sp_max > 0:
-            expire_date = datetime.fromtimestamp(
-                (self.shadow.sp_lstchg + self.shadow.sp_max) * 86400
-            )
-            return Timestamp(expire_date)
-
-        return None
-
-    @property
-    def account_expires(self) -> Timestamp | None:
-        """Return the date when the account expires"""
-        if not self.has_shadow:
-            return None
-
-        if self.shadow.sp_expire > 0:
-            expire_date = datetime.fromtimestamp(self.shadow.sp_expire * 86400)
-            return Timestamp(expire_date)
-
-        return None
-
-    @property
-    def account_locked(self) -> bool:
-        """Return True if the account is locked"""
-        if not self.has_shadow:
-            return None
-
-        # Common ways to lock an account in shadow password
-        return self.shadow.sp_pwd.startswith(("!", "*")) and len(self.shadow.sp_pwd) > 1
-
-    @property
     def is_logged_in(self) -> bool:
         """Return True if the user is currently logged in"""
         return any(u.name == self.username for u in self.users)
@@ -214,18 +159,6 @@ class User(Entity):
         account = Section("Account Details")
         account.add(LabelField("Home", self.home_directory))
         account.add(LabelField("Shell", self.shell))
-
-        if self.has_shadow:
-            account.add(
-                Field("Last Password Change", self.last_password_change or "Never")
-            )
-            if self.password_expires:
-                account.add(LabelField("Password Expires", self.password_expires))
-            if self.account_expires:
-                account.add(LabelField("Account Expires", self.account_expires))
-            account.add(
-                Field("Account Status", "Locked" if self.account_locked else "Active")
-            )
 
         # Login status
         login = Section("Login Status")
