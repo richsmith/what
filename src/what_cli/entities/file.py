@@ -194,7 +194,9 @@ class FileFactory:
     def is_image_file(file_path: str) -> bool:
         """Check if the file is an image file"""
         # FIXME testing
-        return file_path.name.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))
+        return file_path.name.lower().endswith(
+            (".png", ".jpg", ".jpeg", ".gif", ".webp")
+        )
 
 
 @dataclass
