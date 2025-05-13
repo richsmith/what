@@ -50,8 +50,8 @@ class Entity(ABC):
         else:
             main = Table(show_header=False, box=None, padding=0, expand=True)
             main.add_column("Content", min_width=MIN_CONTENT_WIDTH)
-            main.add_column("Preview", min_width=MIN_PREVIEW_WIDTH)
-            padded_preview = Padding(preview, (1, 0, 0, 0))
+            main.add_column("Preview")  # , min_width=MIN_PREVIEW_WIDTH
+            padded_preview = preview  # Padding(preview, (1, 0, 0, 0))
             main.add_row(content, padded_preview)
 
         yield Panel(
