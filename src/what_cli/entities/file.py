@@ -189,9 +189,30 @@ class ImageFile(RegularFile):
             width, height = image.size
         return width, height
 
+    def calculate_optimal_columns(
+        self, max_width: int, max_height: int, char_aspect_ratio: float = 2.0
+    ) -> tuple[int, int]:
+        """Calculate optimal dimensions using standard fit-to-bounds algorithm"""
+        img_width, img_height = self.get_resolution()
+
+        # Adjust for character aspect ratio (chars are taller than wide)
+        # We need to adjust the image dimensions to account for this
+        adjusted_img_width = img_width * char_aspect_ratio
+        adjusted_img_height = img_height
+
+        # Calculate scale factors for both dimensions
+        scale_x = max_width / adjusted_img_width
+        scale_y = max_height / adjusted_img_height
+
+        # Use the smaller scale factor to ensure we fit within bounds
+        scale = min(scale_x, scale_y)
+
+        # Calculate final dimensions
+        final_cols = int(adjusted_img_width * scale)
+        return max(1, final_cols)
+
     @override
     def get_content_sections(self) -> list[Section]:
-        """Return sections for the image file presentation"""
         image_info = Section("Image Information")
         image_info.add(LabelField("Resolution", self.resolution))
         yield image_info
@@ -199,7 +220,6 @@ class ImageFile(RegularFile):
     def get_art(self, cols) -> AsciiArt:
         art = AsciiArt.from_image(self.path)
         ascii_art = art.to_ascii(columns=cols)
-
         grid = Table.grid()
         [grid.add_column() for _ in range(cols)]
         for row in ascii_art.splitlines():
@@ -208,8 +228,9 @@ class ImageFile(RegularFile):
         return grid
 
     @override
-    def get_preview(self, max_height):
-        art = self.get_art(40)
+    def get_preview(self, max_height: int, max_width: int = 80):
+        optimal_cols = self.calculate_optimal_columns(max_width, max_height)
+        art = self.get_art(optimal_cols)
         return Align(art, align="center", vertical="middle")
 
 
