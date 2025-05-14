@@ -1,19 +1,13 @@
 name: Publish to PyPi
-
 on:
-  # Publish to TestPyPI on every push to main
+  # Publish to TestPyPI on every push to main and to PyPI on version tags
   push:
     branches: [main]
-
-  # Publish to PyPI on version tags
-  push:
     tags:
       - 'v*'
-
   # Publish to PyPI on GitHub releases
   release:
     types: [published]
-
   # Allow manual trigger
   workflow_dispatch:
     inputs:
@@ -25,26 +19,21 @@ on:
         options:
           - testpypi
           - pypi
-
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-
     steps:
     - uses: actions/checkout@v4
-
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
-
     - name: Build package
       run: |
         pip install build
         python -m build
-
     - name: Publish to TestPyPI
       if: |
         github.event_name == 'push' && github.ref == 'refs/heads/main' ||
@@ -52,7 +41,6 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://test.pypi.org/legacy/
-
     - name: Publish to PyPI
       if: |
         github.event_name == 'release' ||
