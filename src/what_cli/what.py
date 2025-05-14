@@ -18,6 +18,9 @@ def handle_args():
         "--headers", action="store_true", help="Display section headers"
     )
     parser.add_argument(
+        "--no-preview", "--no-prev", action="store_true", help="Disable preview pane"
+    )
+    parser.add_argument(
         "--debug", action="store_true", help="Display debug information"
     )
     parser.add_argument("-v", "--version", action="version", version=DESCRIPTION)
@@ -37,6 +40,7 @@ def run():
         name = args.name[0]
 
         entity = matcher.match(name)
+        entity.args = args
         display(entity)
 
         return 0

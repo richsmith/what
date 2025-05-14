@@ -1,4 +1,5 @@
 from abc import ABC
+from argparse import ArgumentParser
 from dataclasses import dataclass
 
 from rich.console import Console, ConsoleOptions, RenderResult, group
@@ -16,6 +17,7 @@ MIN_PREVIEW_WIDTH = 40
 class Entity(ABC):
     """Base class for all things"""
 
+    args: ArgumentParser = None
     entity_type: str = "Unknown"
     error: bool = False
     errors: list[str] = None
@@ -65,11 +67,12 @@ class Entity(ABC):
 
         console_width = options.max_width
         room_for_preview = console_width > MIN_CONTENT_WIDTH + MIN_PREVIEW_WIDTH
-        preview_available = room_for_preview and self.provides_preview()
+        preview_on = not self.args.no_preview
+        preview_available = preview_on and room_for_preview and self.provides_preview()
 
         if preview_available:
             main = Table(show_header=False, box=None, padding=0, expand=True)
-            main.add_column("Content", min_width=MIN_CONTENT_WIDTH)
+            main.add_column("Content")
             main.add_column("Preview", min_width=MIN_PREVIEW_WIDTH)
             content_height = self._measure_height(content, console)
             preview = Preview(self.get_preview(content_height), content_height)
