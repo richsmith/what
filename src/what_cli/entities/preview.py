@@ -1,5 +1,8 @@
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.segment import Segment
+from rich.style import Style
+from rich.table import Table
+from rich.text import Text
 
 
 class Preview:
@@ -67,18 +70,33 @@ class Preview:
 
         # Truncate to max_height
         if len(lines) > self.max_height:
-            # Take the first max_height - 1 lines
+            # Take exactly max_height lines (indicator will replace the last one)
             truncated_lines = lines[: self.max_height - 1]
 
-            # Add ellipsis on the last line
-            ellipsis_line = [Segment("...", None, None)]
-            truncated_lines.append(ellipsis_line)
+            # Calculate remaining lines
+            remaining_lines = len(lines) - len(truncated_lines)
+
+            # Create the line count indicator with styling
+            label_str = f"+{remaining_lines} lines"
+            label = Text(label_str, style=Style(dim=True))
+            indicator = Table(show_header=False, box=None, padding=0, expand=True)
+            indicator.add_column(justify="left", highlight=False)
+            indicator.add_column(justify="right", highlight=False)
+            ellipsis = Text("...", style=Style(dim=True))
+            indicator.add_row(ellipsis, label)
+
+            # Replace the last line with the indicator
+            truncated_lines[-1] = indicator
 
             # Yield all segments from truncated lines
-            for line in truncated_lines:
-                for segment in line:
-                    yield segment
-                if line != truncated_lines[-1]:  # Add newline except for last line
+            for i, line in enumerate(truncated_lines):
+                if isinstance(line, list):
+                    for segment in line:
+                        yield segment
+                else:  # Single segment
+                    yield line
+
+                if i < len(truncated_lines) - 1:  # Add newline except for last line
                     yield Segment("\n")
         else:
             # Yield all segments as is
