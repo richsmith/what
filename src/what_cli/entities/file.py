@@ -430,10 +430,8 @@ class TextFile(RegularFile, ABC):
 
     @override
     def get_preview(self, max_lines=20):
-        code = Code(self.path, max_lines=max_lines)
+        code = Code(self.path)
         preview_content = [code]
-        if missing_lines := max(0, self._line_count - max_lines):
-            preview_content.append(f"... +{missing_lines} lines")
         return Group(*preview_content)
 
 

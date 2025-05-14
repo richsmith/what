@@ -8,7 +8,6 @@ from rich.syntax import Syntax
 @dataclass
 class Code:
     path: Path
-    max_lines: int = 20
     line_numbers: bool = True
 
     def __rich_console__(
@@ -18,6 +17,5 @@ class Code:
         syntax = Syntax.from_path(
             self.path,
             line_numbers=self.line_numbers,
-            line_range=(1, self.max_lines),
         )
         yield syntax
