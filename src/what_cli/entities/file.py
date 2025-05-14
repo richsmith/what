@@ -9,6 +9,11 @@ from typing import Self, override
 
 import magic
 from ascii_magic import AsciiArt
+from mutagen import File as MutagenFile
+from mutagen.flac import FLAC
+from mutagen.mp3 import MP3
+from mutagen.mp4 import MP4
+from mutagen.oggvorbis import OggVorbis
 from PIL import Image
 from pygments import lexers
 from rich.console import Group, Text
@@ -18,6 +23,7 @@ from rich.table import Table
 from ..fields import (
     Code,
     DirectorySummary,
+    DurationField,
     EntityName,
     FilePermissions,
     ImageDimensions,
@@ -171,12 +177,14 @@ class ImageFile(RegularFile):
             width, height = image.size
         return width, height
 
+    @override
     def get_content_sections(self) -> list[Section]:
         """Return sections for the image file presentation"""
         image_info = Section("Image Information")
         image_info.add(LabelField("Dimensions", self.dimensions))
         yield image_info
 
+    @override
     def get_preview(self, cols=40):
         art = AsciiArt.from_image(self.path)
         ascii_art = art.to_ascii(columns=cols)
@@ -196,12 +204,57 @@ class ImageFile(RegularFile):
         )
 
 
+@dataclass
+class AudioFile(RegularFile):
+    """Container for audio file information"""
+
+    def __post_init__(self):
+        self._audio = MutagenFile(self.path)
+
+    @property
+    def duration(self) -> str:
+        """Return the audio duration"""
+        return DurationField(self._audio.info.length)
+
+    @property
+    def bitrate(self) -> str:
+        return getattr(self._audio.info, "bitrate", None)
+
+    @property
+    def sample_rate(self) -> str:
+        return getattr(self._audio.info, "sample_rate", None)
+
+    @property
+    def audio_type(self) -> str:
+        if isinstance(self._audio, MP3):
+            format_name = "MP3"
+        elif isinstance(self._audio, FLAC):
+            format_name = "FLAC"
+        elif isinstance(self._audio, MP4):
+            format_name = "MP4/M4A"
+        elif isinstance(self._audio, OggVorbis):
+            format_name = "Ogg Vorbis"
+        else:
+            format_name = self._audio.mime[0] if self._audio.mime else "Unknown"
+        return QuotedField(value=format_name)
+
+    @override
+    def get_content_sections(self) -> list[Section]:
+        audio_info = Section("Audio Information")
+        audio_info.add(LabelField("Audio Format", self.audio_type))
+        audio_info.add(LabelField("Duration", self.duration))
+        if bitrate := self.bitrate:
+            audio_info.add(LabelField("Bitrate", bitrate))
+        if sample_rate := self.sample_rate:
+            audio_info.add(LabelField("Sample Rate", sample_rate))
+        yield audio_info
+
+
 class FileFactory:
     """Factory class for creating file objects"""
 
     @classmethod
     def from_path(cls, file_path: str) -> File:
-        """Analyze a file and return a File object with all details"""
         path = Path(file_path)
 
         if file := cls.match_special_file(path):
@@ -210,18 +263,19 @@ class FileFactory:
             return cls.match_regular_file(path)
 
     @classmethod
-    def match_special_file(cls, path: Path) -> bool:
+    def match_special_file(cls, path: Path) -> File:
         if path.is_symlink():
             return SymlinkFile(path=path)
         elif path.is_dir():
             return Directory(path=path)
 
     @classmethod
-    def match_regular_file(cls, path: Path) -> bool:
-        """Check if the file is a regular file"""
+    def match_regular_file(cls, path: Path) -> File:
         mime = magic.from_file(path, mime=True)
 
-        if cls.is_image_file(path, mime):
+        if cls.is_audio_file(path, mime):
+            file = AudioFile(path=path)
+        elif cls.is_image_file(path, mime):
             file = ImageFile(path=path)
         elif cls.is_plain_text_file(path, mime):
             file = TextFile(path=path)
@@ -233,13 +287,15 @@ class FileFactory:
         return file
 
     @classmethod
+    def is_audio_file(cls, path: Path, mime: str) -> bool:
+        return mime.startswith("audio/")
+
+    @classmethod
     def is_image_file(cls, path: Path, mime: str) -> bool:
-        """Check if the file is an image file"""
         return mime.startswith("image/")
 
     @classmethod
     def is_plain_text_file(cls, path: Path, mime: str) -> bool:
-        """Check if the file is a plain text file"""
         return mime == "text/plain"
 
 
@@ -268,21 +324,17 @@ class TextFile(RegularFile, ABC):
 
     @property
     def line_count(self) -> int:
-        """Return the number of lines in the text file"""
         return NumberField(self._line_count)
 
     @property
     def word_count(self) -> int:
-        """Return the number of words in the text file"""
         return NumberField(self._word_count)
 
     @property
     def encoding(self) -> str:
-        """Return the encoding of the text file"""
         return QuotedField(value=self._encoding)
 
     def get_content_sections(self) -> list[Section]:
-        """Return sections for the text file presentation"""
         text_info = Section("Content Information")
         text_info.add(LabelField("Encoding", self.encoding))
         text_info.add(LabelField("Lines", self.line_count))
@@ -297,7 +349,6 @@ class SymlinkFile(File):
 
     @property
     def target(self) -> str:
-        """Return the target of the symlink"""
         try:
             return os.readlink(self.path)
         except FileNotFoundError:
@@ -318,13 +369,11 @@ class Directory(File):
 
     @property
     def summary(self) -> str:
-        """Return a summary of the directory content"""
         files = sum(1 for item in self._items if item.is_file())
         directories = sum(1 for item in self._items if item.is_dir())
         return DirectorySummary(directories=directories, files=files)
 
     def get_content_sections(self) -> list[Section]:
-        """Return sections for the directory content"""
         directory_info = Section("Directory Information")
         directory_info.add(LabelField("Contains", self.summary))
         yield directory_info
@@ -352,16 +401,16 @@ class CodeFile(TextFile):
     def language(self) -> str:
         return self.get_language(self.path)
 
+    @override
     def get_preview(self, max_lines=20):
-        """Return the code content"""
         code = Code(self.path, max_lines=max_lines)
         preview_content = [code]
         if missing_lines := max(0, self._line_count - max_lines):
             preview_content.append(f"... +{missing_lines} lines")
         return Group(*preview_content)
 
+    @override
     def get_content_sections(self) -> list[Section]:
-        """Return sections for the code file presentation"""
         code_info = Section("Code Information")
         code_info.add(LabelField("Language", self.language))
         code_info.add(LabelField("Encoding", self.encoding))

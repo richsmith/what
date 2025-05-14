@@ -112,6 +112,17 @@ class Timestamp(Field):
 
 
 @dataclass
+class DurationField(Field):
+    """Represents a time duration"""
+
+    seconds: int
+
+    @property
+    def content(self) -> str:
+        return humanize.naturaldelta(self.seconds)
+
+
+@dataclass
 class ImageDimensions(Field):
     """Represents image dimensions"""
 
