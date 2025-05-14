@@ -436,6 +436,14 @@ class TextFile(RegularFile, ABC):
         text_info.add(LabelField("Words", self.word_count))
         yield text_info
 
+    @override
+    def get_preview(self, max_lines=20):
+        code = Code(self.path, max_lines=max_lines)
+        preview_content = [code]
+        if missing_lines := max(0, self._line_count - max_lines):
+            preview_content.append(f"... +{missing_lines} lines")
+        return Group(*preview_content)
+
 
 @dataclass
 class SymlinkFile(File):
@@ -496,14 +504,6 @@ class CodeFile(TextFile):
     @property
     def language(self) -> str:
         return self.get_language(self.path)
-
-    @override
-    def get_preview(self, max_lines=20):
-        code = Code(self.path, max_lines=max_lines)
-        preview_content = [code]
-        if missing_lines := max(0, self._line_count - max_lines):
-            preview_content.append(f"... +{missing_lines} lines")
-        return Group(*preview_content)
 
     @override
     def get_content_sections(self) -> list[Section]:
