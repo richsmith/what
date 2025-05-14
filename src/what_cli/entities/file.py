@@ -18,7 +18,6 @@ from PIL import Image
 from pygments import lexers
 from pymediainfo import MediaInfo
 from rich.console import Group, Text
-from rich.panel import Panel
 from rich.table import Table
 
 from ..fields import (
