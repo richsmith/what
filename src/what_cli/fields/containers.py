@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from rich.console import Console, ConsoleOptions, RenderResult
-from rich.padding import Padding
 from rich.table import Table
 
 
@@ -54,4 +53,4 @@ class Section:
             if not hasattr(value, "__rich_console__"):
                 value = str(value)
             table.add_row(name, value)
-        yield Padding(table, (1, 0, 0, 0))
+        yield table

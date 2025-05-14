@@ -28,7 +28,12 @@ class Entity(ABC):
 
     @group(fit=True)
     def get_content(self) -> list[Section]:
-        yield from self.get_sections()
+        from rich.padding import Padding
+
+        for i, section in enumerate(self.get_sections()):
+            if i > 0:
+                yield Padding("")
+            yield section
 
     def get_preview(self) -> RenderResult:
         """
