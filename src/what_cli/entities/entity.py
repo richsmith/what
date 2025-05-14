@@ -72,7 +72,7 @@ class Entity(ABC):
             main.add_column("Content", min_width=MIN_CONTENT_WIDTH)
             main.add_column("Preview", min_width=MIN_PREVIEW_WIDTH)
             content_height = self._measure_height(content, console)
-            preview = Preview(self.get_preview(), content_height)
+            preview = Preview(self.get_preview(content_height), content_height)
             main.add_row(content, preview)
         else:
             main = content
