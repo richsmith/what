@@ -206,14 +206,7 @@ class ImageFile(RegularFile):
         for row in ascii_art.splitlines():
             row = Text.from_ansi(row)
             grid.add_row(*row)
-
-        return Panel(
-            grid,
-            highlight=False,
-            title="Preview",
-            border_style="dim",
-            title_align="center",
-        )
+        return grid
 
 
 @dataclass
