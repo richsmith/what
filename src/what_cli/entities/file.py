@@ -195,8 +195,7 @@ class ImageFile(RegularFile):
         image_info.add(LabelField("Resolution", self.resolution))
         yield image_info
 
-    @override
-    def get_preview(self, cols=40):
+    def get_art(self, cols) -> AsciiArt:
         art = AsciiArt.from_image(self.path)
         ascii_art = art.to_ascii(columns=cols)
 
@@ -206,6 +205,13 @@ class ImageFile(RegularFile):
             row = Text.from_ansi(row)
             grid.add_row(*row)
         return grid
+
+    @override
+    def get_preview(self, cols=40):
+        art = self.get_art(cols)
+        from rich.align import Align
+
+        return Align(art, align="center", vertical="middle")
 
 
 @dataclass
