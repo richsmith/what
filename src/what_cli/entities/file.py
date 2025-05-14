@@ -10,6 +10,7 @@ from typing import Self, override
 import magic
 from ascii_magic import AsciiArt
 from PIL import Image
+from pygments import lexers
 from rich.console import Group, Text
 from rich.panel import Panel
 from rich.table import Table
@@ -317,10 +318,8 @@ class CodeFile(TextFile):
 
     @classmethod
     def get_language(cls, path: Path) -> str:
-        sample = path.read_text()[:20]
-        from pygments.lexers import guess_lexer
-
-        lexer = guess_lexer(sample)
+        sample = path.read_text()[: (80 * 10)]
+        lexer = lexers.guess_lexer(sample)
         if lexer:
             return lexer.name
 
