@@ -199,17 +199,32 @@ class ImageFile(RegularFile):
 class FileFactory:
     """Factory class for creating file objects"""
 
-    @staticmethod
-    def from_path(file_path: str) -> File:
+    @classmethod
+    def from_path(cls, file_path: str) -> File:
         """Analyze a file and return a File object with all details"""
         path = Path(file_path)
 
+        if file := cls.match_special_file(path):
+            return file
+        else:
+            return cls.match_regular_file(path)
+
+    @classmethod
+    def match_special_file(cls, path: Path) -> bool:
         if path.is_symlink():
-            file = SymlinkFile(path=path)
+            return SymlinkFile(path=path)
         elif path.is_dir():
-            file = Directory(path=path)
-        elif FileFactory.is_image_file(path):
+            return Directory(path=path)
+
+    @classmethod
+    def match_regular_file(cls, path: Path) -> bool:
+        """Check if the file is a regular file"""
+        mime = magic.from_file(path, mime=True)
+
+        if cls.is_image_file(path, mime):
             file = ImageFile(path=path)
+        elif cls.is_plain_text_file(path, mime):
+            file = TextFile(path=path)
         elif CodeFile.match(path=path):
             file = CodeFile(path=path)
         else:
@@ -217,13 +232,15 @@ class FileFactory:
 
         return file
 
-    @staticmethod
-    def is_image_file(file_path: str) -> bool:
+    @classmethod
+    def is_image_file(cls, path: Path, mime: str) -> bool:
         """Check if the file is an image file"""
-        # FIXME testing
-        return file_path.name.lower().endswith(
-            (".png", ".jpg", ".jpeg", ".gif", ".webp")
-        )
+        return mime.startswith("image/")
+
+    @classmethod
+    def is_plain_text_file(cls, path: Path, mime: str) -> bool:
+        """Check if the file is a plain text file"""
+        return mime == "text/plain"
 
 
 @dataclass
