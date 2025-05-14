@@ -420,6 +420,7 @@ class TextFile(RegularFile, ABC):
     def encoding(self) -> str:
         return QuotedField(value=self._encoding)
 
+    @override
     def get_content_sections(self) -> list[Section]:
         text_info = Section("Content Information")
         text_info.add(LabelField("Encoding", self.encoding))
@@ -459,6 +460,7 @@ class Directory(File):
         directories = sum(1 for item in self._items if item.is_dir())
         return DirectorySummary(directories=directories, files=files)
 
+    @override
     def get_content_sections(self) -> list[Section]:
         directory_info = Section("Directory Information")
         directory_info.add(LabelField("Contains", self.summary))
