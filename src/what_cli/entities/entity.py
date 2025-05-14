@@ -69,7 +69,7 @@ class Entity(ABC):
             main,
             title=self.get_title(),
             title_align="left",
-            padding=(0, 1, 1, 1),
+            padding=(1, 1, 1, 1),
         )
 
     def match(self, query: str) -> bool:
