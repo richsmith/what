@@ -123,8 +123,8 @@ class DurationField(Field):
 
 
 @dataclass
-class ImageDimensions(Field):
-    """Represents image dimensions"""
+class Resolution(Field):
+    """Represents image/video resolution"""
 
     x: int
     y: int
@@ -132,6 +132,39 @@ class ImageDimensions(Field):
     @property
     def content(self) -> str:
         return f"{self.x} x {self.y}"
+
+
+@dataclass
+class Bitrate(Field):
+    """Represents a bitrate value"""
+
+    bps: int
+
+    @property
+    def content(self) -> str:
+        return humanize.naturalsize(self.bps, binary=True, format="%.2f") + "/s"
+
+
+@dataclass
+class SampleRate(Field):
+    """Represents a sample rate value"""
+
+    hertz: int
+
+    @property
+    def content(self) -> str:
+        return f"{self.hertz:,} Hz"
+
+
+@dataclass
+class FrameRate(Field):
+    """Represents a frame rate value"""
+
+    fps: float
+
+    @property
+    def content(self) -> str:
+        return f"{self.fps:.2f} fps"
 
 
 @dataclass

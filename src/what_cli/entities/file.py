@@ -16,22 +16,26 @@ from mutagen.mp4 import MP4
 from mutagen.oggvorbis import OggVorbis
 from PIL import Image
 from pygments import lexers
+from pymediainfo import MediaInfo
 from rich.console import Group, Text
 from rich.panel import Panel
 from rich.table import Table
 
 from ..fields import (
+    Bitrate,
     Code,
     DirectorySummary,
     DurationField,
     EntityName,
     FilePermissions,
-    ImageDimensions,
+    FrameRate,
     LabelField,
     MemorySize,
     NumberField,
     PathUri,
     QuotedField,
+    Resolution,
+    SampleRate,
     Section,
     SystemUser,
     Timestamp,
@@ -167,11 +171,11 @@ class ImageFile(RegularFile):
     """Container for image file information"""
 
     @property
-    def dimensions(self) -> ImageDimensions:
-        """Return the image dimensions"""
-        return ImageDimensions(*self.get_dimensions())
+    def resolution(self) -> Resolution:
+        """Return the image resolution"""
+        return Resolution(*self.get_resolution())
 
-    def get_dimensions(self) -> tuple[int, int]:
+    def get_resolution(self) -> tuple[int, int]:
         """Return the image dimensions"""
         with Image.open(self.path) as image:
             width, height = image.size
@@ -181,7 +185,7 @@ class ImageFile(RegularFile):
     def get_content_sections(self) -> list[Section]:
         """Return sections for the image file presentation"""
         image_info = Section("Image Information")
-        image_info.add(LabelField("Dimensions", self.dimensions))
+        image_info.add(LabelField("Resolution", self.resolution))
         yield image_info
 
     @override
@@ -218,11 +222,17 @@ class AudioFile(RegularFile):
 
     @property
     def bitrate(self) -> str:
-        return getattr(self._audio.info, "bitrate", None)
+        if bitrate := getattr(self._audio.info, "bitrate", None):
+            return Bitrate(bitrate)
+        else:
+            return None
 
     @property
     def sample_rate(self) -> str:
-        return getattr(self._audio.info, "sample_rate", None)
+        if sample := getattr(self._audio.info, "sample_rate", None):
+            return SampleRate(sample)
+        else:
+            return None
 
     @property
     def audio_type(self) -> str:
@@ -250,6 +260,76 @@ class AudioFile(RegularFile):
         yield audio_info
 
 
+@dataclass
+class VideoFile(RegularFile):
+    """Container for video file information"""
+
+    def __post_init__(self):
+        self._media_info = MediaInfo.parse(str(self.path))
+        self._video_track = None
+        self._audio_track = None
+
+        for track in self._media_info.tracks:
+            if track.track_type == "Video" and not self._video_track:
+                self._video_track = track
+            elif track.track_type == "Audio" and not self._audio_track:
+                self._audio_track = track
+
+    @property
+    def duration(self) -> str:
+        if self._video_track and self._video_track.duration:
+            return DurationField(self._video_track.duration / 1000)
+        return DurationField(0)
+
+    @property
+    def resolution(self) -> str:
+        if self._video_track:
+            width = self._video_track.width
+            height = self._video_track.height
+            if width and height:
+                return Resolution(width, height)
+        return "Unknown"
+
+    @property
+    def video_codec(self) -> str:
+        if self._video_track and self._video_track.format:
+            return QuotedField(value=self._video_track.format)
+        return QuotedField(value="Unknown")
+
+    @property
+    def audio_codec(self) -> str:
+        if self._audio_track and self._audio_track.format:
+            return QuotedField(value=self._audio_track.format)
+        return QuotedField(value="Unknown")
+
+    @property
+    def frame_rate(self) -> str | None:
+        if self._video_track and self._video_track.frame_rate:
+            frame_rate_str = self._video_track.frame_rate
+            frame_rate = float(frame_rate_str)
+            return FrameRate(frame_rate)
+        return None
+
+    @property
+    def bitrate(self) -> str | None:
+        if self._video_track and self._video_track.overall_bit_rate:
+            bps = self._video_track.overall_bit_rate
+            return Bitrate(bps)
+        return None
+
+    @override
+    def get_content_sections(self) -> list[Section]:
+        video_info = Section("Video Information")
+        video_info.add(LabelField("Duration", self.duration))
+        video_info.add(LabelField("Resolution", self.resolution))
+        video_info.add(LabelField("Codec", self.video_codec))
+        if frame_rate := self.frame_rate:
+            video_info.add(LabelField("Frame Rate", frame_rate))
+        if bitrate := self.bitrate:
+            video_info.add(LabelField("Bitrate", bitrate))
+        yield video_info
+
+
 class FileFactory:
     """Factory class for creating file objects"""
 
@@ -273,7 +353,9 @@ class FileFactory:
     def match_regular_file(cls, path: Path) -> File:
         mime = magic.from_file(path, mime=True)
 
-        if cls.is_audio_file(path, mime):
+        if cls.is_video_file(path, mime):
+            file = VideoFile(path=path)
+        elif cls.is_audio_file(path, mime):
             file = AudioFile(path=path)
         elif cls.is_image_file(path, mime):
             file = ImageFile(path=path)
@@ -289,6 +371,10 @@ class FileFactory:
     @classmethod
     def is_audio_file(cls, path: Path, mime: str) -> bool:
         return mime.startswith("audio/")
+
+    @classmethod
+    def is_video_file(cls, path: Path, mime: str) -> bool:
+        return mime.startswith("video/")
 
     @classmethod
     def is_image_file(cls, path: Path, mime: str) -> bool:
