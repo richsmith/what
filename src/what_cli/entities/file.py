@@ -57,6 +57,14 @@ class File(Entity):
         return EntityName(name=self.path.name)
 
     @property
+    def directory(self) -> Path:
+        """Return the file directory"""
+        if self.path.is_dir():
+            return self.path
+        else:
+            return self.path.parent
+
+    @property
     def size(self) -> MemorySize:
         """Return the file size"""
         return MemorySize(bytes=self._stat.st_size)
@@ -120,7 +128,7 @@ class File(Entity):
         basic = Section("File")
         basic.add(LabelField("Name", self.name))
         self.add_path_fields(basic)
-        basic.add(LabelField("URI", PathUri(path=self.path)))
+        basic.add(LabelField("URI", PathUri(path=self.directory)))
         basic.add(LabelField("Size", self.size))
         basic.add(LabelField("Type", QuotedField(value=self.entity_type)))
         return basic
