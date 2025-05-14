@@ -35,12 +35,19 @@ class Entity(ABC):
                 yield Padding("")
             yield section
 
-    def get_preview(self) -> RenderResult:
+    def get_preview(self, max_height) -> RenderResult:
         """
         Override this method to provide a preview renderable for
         the entity. Return None if no preview is available.
         """
         return None
+
+    @classmethod
+    def provides_preview(cls) -> bool:
+        # A bit hacky :P
+        # This reports whether the subclass has an implemented get_preview
+        if cls.get_preview != Entity.get_preview:
+            return True
 
     def _measure_height(self, renderable, console: Console) -> int:
         capture_console = Console()
@@ -58,14 +65,14 @@ class Entity(ABC):
 
         console_width = options.max_width
         room_for_preview = console_width > MIN_CONTENT_WIDTH + MIN_PREVIEW_WIDTH
-        preview = self.get_preview() if room_for_preview else None
+        preview_available = room_for_preview and self.provides_preview()
 
-        if preview:
+        if preview_available:
             main = Table(show_header=False, box=None, padding=0, expand=True)
             main.add_column("Content", min_width=MIN_CONTENT_WIDTH)
             main.add_column("Preview", min_width=MIN_PREVIEW_WIDTH)
             content_height = self._measure_height(content, console)
-            preview = Preview(preview, content_height)
+            preview = Preview(self.get_preview(), content_height)
             main.add_row(content, preview)
         else:
             main = content

@@ -17,6 +17,7 @@ from mutagen.oggvorbis import OggVorbis
 from PIL import Image
 from pygments import lexers
 from pymediainfo import MediaInfo
+from rich.align import Align
 from rich.console import Group, Text
 from rich.table import Table
 
@@ -207,10 +208,8 @@ class ImageFile(RegularFile):
         return grid
 
     @override
-    def get_preview(self, cols=40):
-        art = self.get_art(cols)
-        from rich.align import Align
-
+    def get_preview(self, max_height):
+        art = self.get_art(40)
         return Align(art, align="center", vertical="middle")
 
 
@@ -435,7 +434,7 @@ class TextFile(RegularFile, ABC):
         yield text_info
 
     @override
-    def get_preview(self, max_lines=20):
+    def get_preview(self, max_height):
         code = Code(self.path)
         preview_content = [code]
         return Group(*preview_content)

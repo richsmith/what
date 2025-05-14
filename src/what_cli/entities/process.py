@@ -167,8 +167,12 @@ class Process(Entity):
             pass
         return children
 
-    def get_preview(self) -> Tree:
-        """Return a tree view of process relationships (ancestors and children)"""
+    @override
+    def get_preview(self, max_height):
+        """
+        Return a tree view of process relationships (ancestors and
+        children)
+        """
 
         ANCESTOR = ["blue"]
         THIS = ["bold", "yellow"]
