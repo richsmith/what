@@ -27,13 +27,16 @@ class NumberField(Field):
     """Represents a number"""
 
     value: Number
+    is_percentage: bool = False
 
     @property
     def content(self) -> str:
+        suffix = "%" if self.is_percentage else ""
+
         if isinstance(self.value, int):
-            return f"{self.value:,}"
+            return f"{self.value:,}{suffix}"
         elif isinstance(self.value, float):
-            return f"{self.value:,.2f}"
+            return f"{self.value:,.2f}{suffix}"
         else:
             raise ValueError(f"Unsupported type: {type(self.value)}")
 

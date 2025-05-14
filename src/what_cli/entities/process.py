@@ -9,6 +9,7 @@ from rich.tree import Tree
 from ..fields import (
     LabelField,
     MemorySize,
+    NumberField,
     ProcessField,
     Section,
     SystemUser,
@@ -72,9 +73,11 @@ class Process(Entity):
     @property
     def memory(self) -> MemorySize:
         """Return the process memory usage"""
-        percent = self.process.memory_percent()
-        percent_str = f"{percent:.2f}%"
-        return MemorySize(bytes=self.process.memory_info().rss, hint=percent_str)
+        return NumberField(
+            self.process.memory_percent(),
+            is_percentage=True,
+            hint=MemorySize(bytes=self.process.memory_info().rss),
+        )
 
     @property
     def nice(self) -> int:
@@ -84,7 +87,8 @@ class Process(Entity):
     @property
     def cpu(self) -> float:
         """Return the process CPU usage"""
-        return self.process.cpu_percent(interval=1)
+        cpu = self.process.cpu_percent(interval=1)
+        return NumberField(cpu, is_percentage=True)
 
     @property
     def command(self) -> str:
@@ -128,7 +132,7 @@ class Process(Entity):
         basic.add(LabelField("Threads", self.thread_count))
 
         resources = Section("Resources")
-        resources.add(LabelField("CPU", f"{self.cpu}%"))
+        resources.add(LabelField("CPU", self.cpu))
         resources.add(LabelField("Nice", self.nice))
         resources.add(LabelField("Memory", self.memory))
 
