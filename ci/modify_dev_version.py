@@ -1,4 +1,4 @@
-j  #!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Add a timestamp to the version in a Python file.
 
