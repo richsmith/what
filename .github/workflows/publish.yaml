@@ -1,5 +1,4 @@
 name: Publish to PyPI
-
 on:
   push:
     branches: [main]
@@ -19,80 +18,99 @@ on:
           - pypi
 
 jobs:
+  setup:
+    name: Setup deployment variables
+    runs-on: ubuntu-latest
+    outputs:
+      target: ${{ steps.set-target.outputs.target }}
+      artifact_name: ${{ steps.set-target.outputs.artifact_name }}
+      repository_url: ${{ steps.set-target.outputs.repository_url }}
+    steps:
+      - id: set-target
+        name: Determine deployment target
+        run: |
+          # Set default target to pypi
+          TARGET="pypi"
+          ARTIFACT_NAME="python-package-dist"
+          REPOSITORY_URL=""
+
+          # For main branch pushes, use testpypi
+          if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ github.event_name }}" == "push" ]]; then
+            TARGET="testpypi"
+            ARTIFACT_NAME="python-package-dist-test"
+            REPOSITORY_URL="https://test.pypi.org/legacy/"
+          fi
+
+          # For manual workflow dispatch, use the user-selected target
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TARGET="${{ github.event.inputs.target }}"
+            if [[ "$TARGET" == "testpypi" ]]; then
+              ARTIFACT_NAME="python-package-dist-test"
+              REPOSITORY_URL="https://test.pypi.org/legacy/"
+            fi
+          fi
+
+          # Output the variables
+          echo "target=$TARGET" >> $GITHUB_OUTPUT
+          echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+          echo "repository_url=$REPOSITORY_URL" >> $GITHUB_OUTPUT
+
+          echo "Deployment target: $TARGET"
+          echo "Artifact name: $ARTIFACT_NAME"
+          echo "Repository URL: $REPOSITORY_URL"
+
   build:
     name: Build distribution 📦
+    needs: setup
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
+
+    - name: Add version timestamp for TestPyPI
+      if: needs.setup.outputs.target == 'testpypi'
+      run: |
+        python ci/modify_dev_version.py src/what_cli/__init__.py
+
     - name: Install pypa/build
       run: >-
         python3 -m
         pip install
         build
         --user
+
     - name: Build a binary wheel and a source tarball
       run: python3 -m build
+
     - name: Store the distribution packages
       uses: actions/upload-artifact@v4
       with:
-        name: python-package-distributions
+        name: ${{ needs.setup.outputs.artifact_name }}
         path: dist/
 
-  publish-to-pypi:
-    name: >-
-      📦 Publish to PyPI
-    if: |
-      github.event_name == 'release' ||
-      startsWith(github.ref, 'refs/tags/v') ||
-      (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
-    needs:
-    - build
+  publish:
+    name: 📦 Publish package
+    needs: [setup, build]
     runs-on: ubuntu-latest
     environment:
-      name: pypi
+      name: ${{ needs.setup.outputs.target }}
       url: https://pypi.org/p/what-cli
     permissions:
       id-token: write
-
     steps:
-    - name: Download all the dists
+    - name: Download distribution packages
       uses: actions/download-artifact@v4
       with:
-        name: python-package-distributions
+        name: ${{ needs.setup.outputs.artifact_name }}
         path: dist/
-    - name: 📦 Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
 
-  publish-to-testpypi:
-    name: 📦 Publish to TestPyPI
-    if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi')
-    needs:
-    - build
-    runs-on: ubuntu-latest
-
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/p/what-cli
-
-    permissions:
-      id-token: write
-
-    steps:
-    - name: Download all the dists
-      uses: actions/download-artifact@v4
-      with:
-        name: python-package-distributions
-        path: dist/
-    - name: 📦 Publish to TestPyPI
+    - name: 📦 Publish distribution
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        repository-url: https://test.pypi.org/legacy/
+        repository-url: ${{ needs.setup.outputs.repository_url }}
