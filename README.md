@@ -1,4 +1,4 @@
-# what: Right-Click for the Command Line
+# What: Right-Click for the Command Line
 
 Have you ever wanted to right-click on a file from the command line and get all the details about it, rather than invoke a bunch of a different utilities? `ls`, `stat` etc. are all fine, but sometimes you want all the info in one place.
 
@@ -8,6 +8,9 @@ Meet `what`, a handy one-stop utility for looking up details about things on you
 
 # Installation
 
+`what` is a Python script. It is available here on Github, or from [PyPi](https://pypi.org/project/what-cli/).
+
+The simplest way to install it is:
 `pipx install what-cli`
 
 # Features
