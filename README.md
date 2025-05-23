@@ -17,30 +17,4 @@ Meet `what`, a handy one-stop utility for looking up details about things on you
 - Preview pane showing something about the thing being looked up is shown if there is enough console space (e.g. process tree for processes, ascii drawing for image files)
 
 # Screenshots
-
-```
-$ what what.py
-
-╭─ 📄 File: what.py ───────────────────────────────────────────────────────────╮
-│                                                                              │
-│  Name  what.py                                                               │
-│  Path  /home/rls/code/what/src/what_cli/what.py                              │
-│   URI  file:///home/rls/code/what/src/what_cli                               │
-│  Size  1.3 kB                                                                │
-│  Type  File                                                                  │
-│  MIME  text/x-script.python                                                  │
-│                                                                              │
-│  Owner  rls                                                                  │
-│  Group  rls                                                                  │
-│    RWX  rw-rw-r--                                                            │
-│                                                                              │
-│   Created  2025-05-14 18:21:44 (6 days ago)                                  │
-│  Modified  2025-05-14 18:21:44 (6 days ago)                                  │
-│  Accessed  2025-05-21 16:48:29 (now)                                         │
-│                                                                              │
-│  Language  Python                                                            │
-│  Encoding  ascii                                                             │
-│     Lines  52                                                                │
-│                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────╯
-```
+<img src="assets/images/screenshot.png" style="height: 80%" alt="Demonstration of the program being invoked on three types of assets">
